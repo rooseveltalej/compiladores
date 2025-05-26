@@ -11,7 +11,18 @@ options {
 }
 
 // --- Start Rule ---
-program: CLASS IDENT LBRACE (varDecl | classDecl | methodDecl)* RBRACE;
+// Un programa ahora puede comenzar con cero o más directivas 'using',
+// seguidas por la declaración de la clase principal.
+program: usingDirective* CLASS IDENT LBRACE (varDecl | classDecl | methodDecl)* RBRACE;
+
+// --- Using Directive ---
+// Define la estructura de una directiva 'using'.
+// Ej: using System; o using MiModulo.Utils;
+usingDirective: USING qualifiedIdent SEMI;
+
+// Un identificador calificado puede ser una secuencia de IDENTs separados por DOT.
+// Ej: System, System.Collections, MiNamespace.MiClaseInterna
+qualifiedIdent: IDENT (DOT IDENT)*;
 
 // --- Declarations ---
 varDecl: type IDENT (COMMA IDENT)* SEMI;

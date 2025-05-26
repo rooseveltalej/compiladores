@@ -49,6 +49,30 @@ public partial class MiniCSharpParserBaseListener : IMiniCSharpParserListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitProgram([NotNull] MiniCSharpParser.ProgramContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="MiniCSharpParser.usingDirective"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterUsingDirective([NotNull] MiniCSharpParser.UsingDirectiveContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="MiniCSharpParser.usingDirective"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitUsingDirective([NotNull] MiniCSharpParser.UsingDirectiveContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="MiniCSharpParser.qualifiedIdent"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterQualifiedIdent([NotNull] MiniCSharpParser.QualifiedIdentContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="MiniCSharpParser.qualifiedIdent"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitQualifiedIdent([NotNull] MiniCSharpParser.QualifiedIdentContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="MiniCSharpParser.varDecl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

@@ -24,6 +24,7 @@ FALSE: 'false';
 SWITCH: 'switch'; // <<< NUEVO
 CASE: 'case';     // <<< NUEVO
 DEFAULT: 'default'; // <<< NUEVO
+USING: 'using';
 
 
 // --- Operators & Punctuation ---
@@ -52,7 +53,7 @@ RBRACK: ']';
 SEMI: ';';
 COMMA: ',';
 DOT: '.';
-COLON: ':'; // <<< NUEVO (Si no lo tenías ya para otros usos)
+COLON: ':'; 
 
 // --- Literales ---
 INTCONST: '0' | [1-9] DIGIT*;

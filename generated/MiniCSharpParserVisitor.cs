@@ -39,6 +39,18 @@ public interface IMiniCSharpParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitProgram([NotNull] MiniCSharpParser.ProgramContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="MiniCSharpParser.usingDirective"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUsingDirective([NotNull] MiniCSharpParser.UsingDirectiveContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="MiniCSharpParser.qualifiedIdent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitQualifiedIdent([NotNull] MiniCSharpParser.QualifiedIdentContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="MiniCSharpParser.varDecl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

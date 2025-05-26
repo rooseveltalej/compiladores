@@ -1,4 +1,5 @@
-﻿using Antlr4.Runtime.Tree;
+﻿using System.Xml;
+using Antlr4.Runtime.Tree;
 using generated;
 
 namespace Compiladores.Checker
@@ -26,6 +27,9 @@ namespace Compiladores.Checker
             // }
             ErrorMessages.Add($"SEMANTIC ERROR: {message} (near \"{context.GetText()}\")");
         }
+        
+        
+        
 
         public override Type VisitProgram(MiniCSharpParser.ProgramContext context)
         {
@@ -734,6 +738,72 @@ namespace Compiladores.Checker
             return Type.Bool; // [cite: 126]
         }
 
+        public override Type VisitSwitchStatement(MiniCSharpParser.SwitchStatementContext context)
+        {
+            return base.VisitSwitchStatement(context);
+        }
+
+        public override Type VisitSwitchCase(MiniCSharpParser.SwitchCaseContext context)
+        {
+            return base.VisitSwitchCase(context);
+        }
+
+        public override Type VisitDefaultCase(MiniCSharpParser.DefaultCaseContext context)
+        {
+            return base.VisitDefaultCase(context);
+        }
+
+        public override Type VisitConstant(MiniCSharpParser.ConstantContext context)
+        {
+            return base.VisitConstant(context);
+        }
+
+        public override Type VisitActPars(MiniCSharpParser.ActParsContext context)
+        {
+            return base.VisitActPars(context);
+        }
+
+        public override Type VisitNumber(MiniCSharpParser.NumberContext context)
+        {
+            return base.VisitNumber(context);
+        }
+
+        public override Type VisitRelop(MiniCSharpParser.RelopContext context)
+        {
+            return base.VisitRelop(context);
+        }
+
+        public override Type VisitAddop(MiniCSharpParser.AddopContext context)
+        {
+            return base.VisitAddop(context);
+        }
+
+        public override Type VisitMulop(MiniCSharpParser.MulopContext context)
+        {
+            return base.VisitMulop(context);
+        }
+
+        public override Type Visit(IParseTree tree)
+        {
+            return base.Visit(tree);
+        }
+
+        public override Type VisitChildren(IRuleNode node)
+        {
+            return base.VisitChildren(node);
+        }
+
+        public override Type VisitTerminal(ITerminalNode node)
+        {
+            return base.VisitTerminal(node);
+        }
+
+        public override Type VisitErrorNode(IErrorNode node)
+        {
+            return base.VisitErrorNode(node);
+        }
+
+
         private bool AreTypesCompatibleForEquality(Type t1, Type t2)
         {
             if (t1.Kind == TypeKind.Error || t2.Kind == TypeKind.Error) return true; // No propagar error
@@ -948,5 +1018,8 @@ namespace Compiladores.Checker
             AddError("Casting is not supported in this version of MiniC#.", context);
             return Type.Error;
         }
+         
     }
+    
+    
 }

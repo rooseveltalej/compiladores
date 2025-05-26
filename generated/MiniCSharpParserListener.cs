@@ -42,6 +42,26 @@ public interface IMiniCSharpParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitProgram([NotNull] MiniCSharpParser.ProgramContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="MiniCSharpParser.usingDirective"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterUsingDirective([NotNull] MiniCSharpParser.UsingDirectiveContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="MiniCSharpParser.usingDirective"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitUsingDirective([NotNull] MiniCSharpParser.UsingDirectiveContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="MiniCSharpParser.qualifiedIdent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterQualifiedIdent([NotNull] MiniCSharpParser.QualifiedIdentContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="MiniCSharpParser.qualifiedIdent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitQualifiedIdent([NotNull] MiniCSharpParser.QualifiedIdentContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="MiniCSharpParser.varDecl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
