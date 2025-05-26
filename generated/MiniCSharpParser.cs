@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Users/Bayron/RiderProjects/compiladores/MiniCSharpParser.g4 by ANTLR 4.13.2
+// Generated from /Volumes/macOs/rooseveltalej/Documents/Compiladores/MiniCSharpParser.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -19,6 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
+namespace generated {
 using System;
 using System.IO;
 using System.Text;
@@ -37,40 +38,42 @@ public partial class MiniCSharpParser : Parser {
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
 		CLASS=1, VOID=2, IF=3, ELSE=4, FOR=5, WHILE=6, BREAK=7, RETURN=8, READ=9, 
-		WRITE=10, NEW=11, TRUE=12, FALSE=13, ASSIGN=14, PLUS=15, MINUS=16, MULT=17, 
-		DIV=18, MOD=19, EQUAL=20, NOTEQUAL=21, LT=22, LE=23, GT=24, GE=25, AND=26, 
-		OR=27, INC=28, DEC=29, LPAREN=30, RPAREN=31, LBRACE=32, RBRACE=33, LBRACK=34, 
-		RBRACK=35, SEMI=36, COMMA=37, DOT=38, INTCONST=39, DOUBLECONST=40, CHARCONST=41, 
-		STRINGCONST=42, IDENT=43, WS=44, LINE_COMMENT=45, BLOCK_COMMENT=46, CM_START=47, 
-		CM_END=48, CM_TEXT=49;
+		WRITE=10, NEW=11, TRUE=12, FALSE=13, SWITCH=14, CASE=15, DEFAULT=16, ASSIGN=17, 
+		PLUS=18, MINUS=19, MULT=20, DIV=21, MOD=22, EQUAL=23, NOTEQUAL=24, LT=25, 
+		LE=26, GT=27, GE=28, AND=29, OR=30, INC=31, DEC=32, LPAREN=33, RPAREN=34, 
+		LBRACE=35, RBRACE=36, LBRACK=37, RBRACK=38, SEMI=39, COMMA=40, DOT=41, 
+		COLON=42, INTCONST=43, DOUBLECONST=44, CHARCONST=45, STRINGCONST=46, IDENT=47, 
+		WS=48, LINE_COMMENT=49, BLOCK_COMMENT=50, CM_START=51, CM_END=52, CM_TEXT=53;
 	public const int
 		RULE_program = 0, RULE_varDecl = 1, RULE_classDecl = 2, RULE_methodDecl = 3, 
-		RULE_formPars = 4, RULE_type = 5, RULE_statement = 6, RULE_block = 7, 
-		RULE_actPars = 8, RULE_condition = 9, RULE_condTerm = 10, RULE_condFact = 11, 
-		RULE_cast = 12, RULE_expr = 13, RULE_term = 14, RULE_factor = 15, RULE_designator = 16, 
-		RULE_number = 17, RULE_relop = 18, RULE_addop = 19, RULE_mulop = 20;
+		RULE_formPars = 4, RULE_type = 5, RULE_statement = 6, RULE_switchCase = 7, 
+		RULE_defaultCase = 8, RULE_constant = 9, RULE_block = 10, RULE_actPars = 11, 
+		RULE_condition = 12, RULE_condTerm = 13, RULE_condFact = 14, RULE_cast = 15, 
+		RULE_expr = 16, RULE_term = 17, RULE_factor = 18, RULE_designator = 19, 
+		RULE_number = 20, RULE_relop = 21, RULE_addop = 22, RULE_mulop = 23;
 	public static readonly string[] ruleNames = {
 		"program", "varDecl", "classDecl", "methodDecl", "formPars", "type", "statement", 
-		"block", "actPars", "condition", "condTerm", "condFact", "cast", "expr", 
-		"term", "factor", "designator", "number", "relop", "addop", "mulop"
+		"switchCase", "defaultCase", "constant", "block", "actPars", "condition", 
+		"condTerm", "condFact", "cast", "expr", "term", "factor", "designator", 
+		"number", "relop", "addop", "mulop"
 	};
 
 	private static readonly string[] _LiteralNames = {
 		null, "'class'", "'void'", "'if'", "'else'", "'for'", "'while'", "'break'", 
-		"'return'", "'read'", "'write'", "'new'", "'true'", "'false'", "'='", 
-		"'+'", "'-'", "'*'", "'/'", "'%'", "'=='", "'!='", "'<'", "'<='", "'>'", 
-		"'>='", "'&&'", "'||'", "'++'", "'--'", "'('", "')'", "'{'", "'}'", "'['", 
-		"']'", "';'", "','", "'.'", null, null, null, null, null, null, null, 
-		null, null, "'*/'"
+		"'return'", "'read'", "'write'", "'new'", "'true'", "'false'", "'switch'", 
+		"'case'", "'default'", "'='", "'+'", "'-'", "'*'", "'/'", "'%'", "'=='", 
+		"'!='", "'<'", "'<='", "'>'", "'>='", "'&&'", "'||'", "'++'", "'--'", 
+		"'('", "')'", "'{'", "'}'", "'['", "']'", "';'", "','", "'.'", "':'", 
+		null, null, null, null, null, null, null, null, null, "'*/'"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, "CLASS", "VOID", "IF", "ELSE", "FOR", "WHILE", "BREAK", "RETURN", 
-		"READ", "WRITE", "NEW", "TRUE", "FALSE", "ASSIGN", "PLUS", "MINUS", "MULT", 
-		"DIV", "MOD", "EQUAL", "NOTEQUAL", "LT", "LE", "GT", "GE", "AND", "OR", 
-		"INC", "DEC", "LPAREN", "RPAREN", "LBRACE", "RBRACE", "LBRACK", "RBRACK", 
-		"SEMI", "COMMA", "DOT", "INTCONST", "DOUBLECONST", "CHARCONST", "STRINGCONST", 
-		"IDENT", "WS", "LINE_COMMENT", "BLOCK_COMMENT", "CM_START", "CM_END", 
-		"CM_TEXT"
+		"READ", "WRITE", "NEW", "TRUE", "FALSE", "SWITCH", "CASE", "DEFAULT", 
+		"ASSIGN", "PLUS", "MINUS", "MULT", "DIV", "MOD", "EQUAL", "NOTEQUAL", 
+		"LT", "LE", "GT", "GE", "AND", "OR", "INC", "DEC", "LPAREN", "RPAREN", 
+		"LBRACE", "RBRACE", "LBRACK", "RBRACK", "SEMI", "COMMA", "DOT", "COLON", 
+		"INTCONST", "DOUBLECONST", "CHARCONST", "STRINGCONST", "IDENT", "WS", 
+		"LINE_COMMENT", "BLOCK_COMMENT", "CM_START", "CM_END", "CM_TEXT"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -133,6 +136,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_program; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterProgram(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitProgram(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitProgram(this);
@@ -148,45 +161,45 @@ public partial class MiniCSharpParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 42;
+			State = 48;
 			Match(CLASS);
-			State = 43;
+			State = 49;
 			Match(IDENT);
-			State = 44;
-			Match(LBRACE);
 			State = 50;
+			Match(LBRACE);
+			State = 56;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 8796093022214L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 140737488355334L) != 0)) {
 				{
-				State = 48;
+				State = 54;
 				ErrorHandler.Sync(this);
 				switch ( Interpreter.AdaptivePredict(TokenStream,0,Context) ) {
 				case 1:
 					{
-					State = 45;
+					State = 51;
 					varDecl();
 					}
 					break;
 				case 2:
 					{
-					State = 46;
+					State = 52;
 					classDecl();
 					}
 					break;
 				case 3:
 					{
-					State = 47;
+					State = 53;
 					methodDecl();
 					}
 					break;
 				}
 				}
-				State = 52;
+				State = 58;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
-			State = 53;
+			State = 59;
 			Match(RBRACE);
 			}
 		}
@@ -220,6 +233,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_varDecl; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterVarDecl(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitVarDecl(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitVarDecl(this);
@@ -235,27 +258,27 @@ public partial class MiniCSharpParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 55;
-			type();
-			State = 56;
-			Match(IDENT);
 			State = 61;
+			type();
+			State = 62;
+			Match(IDENT);
+			State = 67;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==COMMA) {
 				{
 				{
-				State = 57;
+				State = 63;
 				Match(COMMA);
-				State = 58;
+				State = 64;
 				Match(IDENT);
 				}
 				}
-				State = 63;
+				State = 69;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
-			State = 64;
+			State = 70;
 			Match(SEMI);
 			}
 		}
@@ -287,6 +310,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_classDecl; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterClassDecl(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitClassDecl(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitClassDecl(this);
@@ -302,27 +335,27 @@ public partial class MiniCSharpParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 66;
-			Match(CLASS);
-			State = 67;
-			Match(IDENT);
-			State = 68;
-			Match(LBRACE);
 			State = 72;
+			Match(CLASS);
+			State = 73;
+			Match(IDENT);
+			State = 74;
+			Match(LBRACE);
+			State = 78;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==IDENT) {
 				{
 				{
-				State = 69;
+				State = 75;
 				varDecl();
 				}
 				}
-				State = 74;
+				State = 80;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
-			State = 75;
+			State = 81;
 			Match(RBRACE);
 			}
 		}
@@ -357,6 +390,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_methodDecl; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterMethodDecl(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitMethodDecl(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitMethodDecl(this);
@@ -372,41 +415,41 @@ public partial class MiniCSharpParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 79;
+			State = 85;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case IDENT:
 				{
-				State = 77;
+				State = 83;
 				type();
 				}
 				break;
 			case VOID:
 				{
-				State = 78;
+				State = 84;
 				Match(VOID);
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			State = 81;
+			State = 87;
 			Match(IDENT);
-			State = 82;
+			State = 88;
 			Match(LPAREN);
-			State = 84;
+			State = 90;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			if (_la==IDENT) {
 				{
-				State = 83;
+				State = 89;
 				formPars();
 				}
 			}
 
-			State = 86;
+			State = 92;
 			Match(RPAREN);
-			State = 87;
+			State = 93;
 			block();
 			}
 		}
@@ -442,6 +485,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_formPars; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterFormPars(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitFormPars(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFormPars(this);
@@ -457,25 +510,25 @@ public partial class MiniCSharpParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 89;
+			State = 95;
 			type();
-			State = 90;
+			State = 96;
 			Match(IDENT);
-			State = 97;
+			State = 103;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==COMMA) {
 				{
 				{
-				State = 91;
+				State = 97;
 				Match(COMMA);
-				State = 92;
+				State = 98;
 				type();
-				State = 93;
+				State = 99;
 				Match(IDENT);
 				}
 				}
-				State = 99;
+				State = 105;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -502,6 +555,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_type; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterType(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitType(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitType(this);
@@ -517,16 +580,16 @@ public partial class MiniCSharpParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 100;
+			State = 106;
 			Match(IDENT);
-			State = 103;
+			State = 109;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			if (_la==LBRACK) {
 				{
-				State = 101;
+				State = 107;
 				Match(LBRACK);
-				State = 102;
+				State = 108;
 				Match(RBRACK);
 				}
 			}
@@ -561,6 +624,16 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(MiniCSharpParser.SEMI, 0); }
 		public BreakStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterBreakStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitBreakStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitBreakStatement(this);
@@ -583,9 +656,55 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ELSE() { return GetToken(MiniCSharpParser.ELSE, 0); }
 		public IfStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterIfStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitIfStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitIfStatement(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class SwitchStatementContext : StatementContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SWITCH() { return GetToken(MiniCSharpParser.SWITCH, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LPAREN() { return GetToken(MiniCSharpParser.LPAREN, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ExprContext expr() {
+			return GetRuleContext<ExprContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAREN() { return GetToken(MiniCSharpParser.RPAREN, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LBRACE() { return GetToken(MiniCSharpParser.LBRACE, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RBRACE() { return GetToken(MiniCSharpParser.RBRACE, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public SwitchCaseContext[] switchCase() {
+			return GetRuleContexts<SwitchCaseContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public SwitchCaseContext switchCase(int i) {
+			return GetRuleContext<SwitchCaseContext>(i);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public DefaultCaseContext defaultCase() {
+			return GetRuleContext<DefaultCaseContext>(0);
+		}
+		public SwitchStatementContext(StatementContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterSwitchStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitSwitchStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSwitchStatement(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
@@ -598,6 +717,16 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAREN() { return GetToken(MiniCSharpParser.RPAREN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(MiniCSharpParser.SEMI, 0); }
 		public ReadStatementContext(StatementContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterReadStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitReadStatement(this);
+		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -613,6 +742,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public ReturnStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterReturnStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitReturnStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitReturnStatement(this);
@@ -622,6 +761,16 @@ public partial class MiniCSharpParser : Parser {
 	public partial class EmptyStatementContext : StatementContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(MiniCSharpParser.SEMI, 0); }
 		public EmptyStatementContext(StatementContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterEmptyStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitEmptyStatement(this);
+		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -647,6 +796,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public DesignatorStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterDesignatorStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitDesignatorStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDesignatorStatement(this);
@@ -667,6 +826,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public WriteStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterWriteStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitWriteStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitWriteStatement(this);
@@ -678,6 +847,16 @@ public partial class MiniCSharpParser : Parser {
 			return GetRuleContext<BlockContext>(0);
 		}
 		public BlockStatementContext(StatementContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterBlockStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitBlockStatement(this);
+		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -696,6 +875,16 @@ public partial class MiniCSharpParser : Parser {
 			return GetRuleContext<StatementContext>(0);
 		}
 		public WhileStatementContext(StatementContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterWhileStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitWhileStatement(this);
+		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -725,6 +914,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public ForStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterForStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitForStatement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitForStatement(this);
@@ -738,60 +937,60 @@ public partial class MiniCSharpParser : Parser {
 		EnterRule(_localctx, 12, RULE_statement);
 		int _la;
 		try {
-			State = 174;
+			State = 196;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case IDENT:
 				_localctx = new DesignatorStatementContext(_localctx);
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 105;
+				State = 111;
 				designator();
-				State = 115;
+				State = 121;
 				ErrorHandler.Sync(this);
 				switch (TokenStream.LA(1)) {
 				case ASSIGN:
 					{
-					State = 106;
+					State = 112;
 					Match(ASSIGN);
-					State = 107;
+					State = 113;
 					expr();
 					}
 					break;
 				case LPAREN:
 					{
-					State = 108;
+					State = 114;
 					Match(LPAREN);
-					State = 110;
+					State = 116;
 					ErrorHandler.Sync(this);
 					_la = TokenStream.LA(1);
-					if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 17043504052224L) != 0)) {
+					if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 272687474161664L) != 0)) {
 						{
-						State = 109;
+						State = 115;
 						actPars();
 						}
 					}
 
-					State = 112;
+					State = 118;
 					Match(RPAREN);
 					}
 					break;
 				case INC:
 					{
-					State = 113;
+					State = 119;
 					Match(INC);
 					}
 					break;
 				case DEC:
 					{
-					State = 114;
+					State = 120;
 					Match(DEC);
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				State = 117;
+				State = 123;
 				Match(SEMI);
 				}
 				break;
@@ -799,24 +998,24 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new IfStatementContext(_localctx);
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 119;
+				State = 125;
 				Match(IF);
-				State = 120;
-				Match(LPAREN);
-				State = 121;
-				condition();
-				State = 122;
-				Match(RPAREN);
-				State = 123;
-				statement();
 				State = 126;
+				Match(LPAREN);
+				State = 127;
+				condition();
+				State = 128;
+				Match(RPAREN);
+				State = 129;
+				statement();
+				State = 132;
 				ErrorHandler.Sync(this);
 				switch ( Interpreter.AdaptivePredict(TokenStream,10,Context) ) {
 				case 1:
 					{
-					State = 124;
+					State = 130;
 					Match(ELSE);
-					State = 125;
+					State = 131;
 					statement();
 					}
 					break;
@@ -827,47 +1026,47 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new ForStatementContext(_localctx);
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 128;
+				State = 134;
 				Match(FOR);
-				State = 129;
+				State = 135;
 				Match(LPAREN);
-				State = 131;
+				State = 137;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 17043504052224L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 272687474161664L) != 0)) {
 					{
-					State = 130;
+					State = 136;
 					expr();
 					}
 				}
 
-				State = 133;
+				State = 139;
 				Match(SEMI);
-				State = 135;
+				State = 141;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 17043504052224L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 272687474161664L) != 0)) {
 					{
-					State = 134;
+					State = 140;
 					condition();
 					}
 				}
 
-				State = 137;
+				State = 143;
 				Match(SEMI);
-				State = 139;
+				State = 145;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 8869107468264L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 141321603925992L) != 0)) {
 					{
-					State = 138;
+					State = 144;
 					statement();
 					}
 				}
 
-				State = 141;
+				State = 147;
 				Match(RPAREN);
-				State = 142;
+				State = 148;
 				statement();
 				}
 				break;
@@ -875,106 +1074,361 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new WhileStatementContext(_localctx);
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 143;
+				State = 149;
 				Match(WHILE);
-				State = 144;
+				State = 150;
 				Match(LPAREN);
-				State = 145;
+				State = 151;
 				condition();
-				State = 146;
+				State = 152;
 				Match(RPAREN);
-				State = 147;
+				State = 153;
 				statement();
+				}
+				break;
+			case SWITCH:
+				_localctx = new SwitchStatementContext(_localctx);
+				EnterOuterAlt(_localctx, 5);
+				{
+				State = 155;
+				Match(SWITCH);
+				State = 156;
+				Match(LPAREN);
+				State = 157;
+				expr();
+				State = 158;
+				Match(RPAREN);
+				State = 159;
+				Match(LBRACE);
+				State = 163;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+				while (_la==CASE) {
+					{
+					{
+					State = 160;
+					switchCase();
+					}
+					}
+					State = 165;
+					ErrorHandler.Sync(this);
+					_la = TokenStream.LA(1);
+				}
+				State = 167;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+				if (_la==DEFAULT) {
+					{
+					State = 166;
+					defaultCase();
+					}
+				}
+
+				State = 169;
+				Match(RBRACE);
 				}
 				break;
 			case BREAK:
 				_localctx = new BreakStatementContext(_localctx);
-				EnterOuterAlt(_localctx, 5);
+				EnterOuterAlt(_localctx, 6);
 				{
-				State = 149;
+				State = 171;
 				Match(BREAK);
-				State = 150;
+				State = 172;
 				Match(SEMI);
 				}
 				break;
 			case RETURN:
 				_localctx = new ReturnStatementContext(_localctx);
-				EnterOuterAlt(_localctx, 6);
+				EnterOuterAlt(_localctx, 7);
 				{
-				State = 151;
+				State = 173;
 				Match(RETURN);
-				State = 153;
+				State = 175;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 17043504052224L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 272687474161664L) != 0)) {
 					{
-					State = 152;
+					State = 174;
 					expr();
 					}
 				}
 
-				State = 155;
+				State = 177;
 				Match(SEMI);
 				}
 				break;
 			case READ:
 				_localctx = new ReadStatementContext(_localctx);
-				EnterOuterAlt(_localctx, 7);
+				EnterOuterAlt(_localctx, 8);
 				{
-				State = 156;
+				State = 178;
 				Match(READ);
-				State = 157;
+				State = 179;
 				Match(LPAREN);
-				State = 158;
+				State = 180;
 				designator();
-				State = 159;
+				State = 181;
 				Match(RPAREN);
-				State = 160;
+				State = 182;
 				Match(SEMI);
 				}
 				break;
 			case WRITE:
 				_localctx = new WriteStatementContext(_localctx);
-				EnterOuterAlt(_localctx, 8);
+				EnterOuterAlt(_localctx, 9);
 				{
-				State = 162;
+				State = 184;
 				Match(WRITE);
-				State = 163;
+				State = 185;
 				Match(LPAREN);
-				State = 164;
+				State = 186;
 				expr();
-				State = 167;
+				State = 189;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==COMMA) {
 					{
-					State = 165;
+					State = 187;
 					Match(COMMA);
-					State = 166;
+					State = 188;
 					number();
 					}
 				}
 
-				State = 169;
+				State = 191;
 				Match(RPAREN);
-				State = 170;
+				State = 192;
 				Match(SEMI);
 				}
 				break;
 			case LBRACE:
 				_localctx = new BlockStatementContext(_localctx);
-				EnterOuterAlt(_localctx, 9);
+				EnterOuterAlt(_localctx, 10);
 				{
-				State = 172;
+				State = 194;
 				block();
 				}
 				break;
 			case SEMI:
 				_localctx = new EmptyStatementContext(_localctx);
-				EnterOuterAlt(_localctx, 10);
+				EnterOuterAlt(_localctx, 11);
 				{
-				State = 173;
+				State = 195;
 				Match(SEMI);
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class SwitchCaseContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CASE() { return GetToken(MiniCSharpParser.CASE, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ConstantContext constant() {
+			return GetRuleContext<ConstantContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(MiniCSharpParser.COLON, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public StatementContext[] statement() {
+			return GetRuleContexts<StatementContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public StatementContext statement(int i) {
+			return GetRuleContext<StatementContext>(i);
+		}
+		public SwitchCaseContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_switchCase; } }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterSwitchCase(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitSwitchCase(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSwitchCase(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public SwitchCaseContext switchCase() {
+		SwitchCaseContext _localctx = new SwitchCaseContext(Context, State);
+		EnterRule(_localctx, 14, RULE_switchCase);
+		int _la;
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 198;
+			Match(CASE);
+			State = 199;
+			constant();
+			State = 200;
+			Match(COLON);
+			State = 204;
+			ErrorHandler.Sync(this);
+			_la = TokenStream.LA(1);
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 141321603925992L) != 0)) {
+				{
+				{
+				State = 201;
+				statement();
+				}
+				}
+				State = 206;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class DefaultCaseContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEFAULT() { return GetToken(MiniCSharpParser.DEFAULT, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(MiniCSharpParser.COLON, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public StatementContext[] statement() {
+			return GetRuleContexts<StatementContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public StatementContext statement(int i) {
+			return GetRuleContext<StatementContext>(i);
+		}
+		public DefaultCaseContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_defaultCase; } }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterDefaultCase(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitDefaultCase(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDefaultCase(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public DefaultCaseContext defaultCase() {
+		DefaultCaseContext _localctx = new DefaultCaseContext(Context, State);
+		EnterRule(_localctx, 16, RULE_defaultCase);
+		int _la;
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 207;
+			Match(DEFAULT);
+			State = 208;
+			Match(COLON);
+			State = 212;
+			ErrorHandler.Sync(this);
+			_la = TokenStream.LA(1);
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 141321603925992L) != 0)) {
+				{
+				{
+				State = 209;
+				statement();
+				}
+				}
+				State = 214;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class ConstantContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public NumberContext number() {
+			return GetRuleContext<NumberContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CHARCONST() { return GetToken(MiniCSharpParser.CHARCONST, 0); }
+		public ConstantContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_constant; } }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterConstant(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitConstant(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitConstant(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public ConstantContext constant() {
+		ConstantContext _localctx = new ConstantContext(Context, State);
+		EnterRule(_localctx, 18, RULE_constant);
+		try {
+			State = 217;
+			ErrorHandler.Sync(this);
+			switch (TokenStream.LA(1)) {
+			case INTCONST:
+			case DOUBLECONST:
+				EnterOuterAlt(_localctx, 1);
+				{
+				State = 215;
+				number();
+				}
+				break;
+			case CHARCONST:
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 216;
+				Match(CHARCONST);
 				}
 				break;
 			default:
@@ -1013,6 +1467,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_block; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterBlock(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitBlock(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitBlock(this);
@@ -1023,40 +1487,40 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public BlockContext block() {
 		BlockContext _localctx = new BlockContext(Context, State);
-		EnterRule(_localctx, 14, RULE_block);
+		EnterRule(_localctx, 20, RULE_block);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 176;
+			State = 219;
 			Match(LBRACE);
-			State = 181;
+			State = 224;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 8869107468264L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 141321603925992L) != 0)) {
 				{
-				State = 179;
+				State = 222;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,17,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,22,Context) ) {
 				case 1:
 					{
-					State = 177;
+					State = 220;
 					varDecl();
 					}
 					break;
 				case 2:
 					{
-					State = 178;
+					State = 221;
 					statement();
 					}
 					break;
 				}
 				}
-				State = 183;
+				State = 226;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
-			State = 184;
+			State = 227;
 			Match(RBRACE);
 			}
 		}
@@ -1088,6 +1552,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_actPars; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterActPars(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitActPars(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitActPars(this);
@@ -1098,26 +1572,26 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public ActParsContext actPars() {
 		ActParsContext _localctx = new ActParsContext(Context, State);
-		EnterRule(_localctx, 16, RULE_actPars);
+		EnterRule(_localctx, 22, RULE_actPars);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 186;
+			State = 229;
 			expr();
-			State = 191;
+			State = 234;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==COMMA) {
 				{
 				{
-				State = 187;
+				State = 230;
 				Match(COMMA);
-				State = 188;
+				State = 231;
 				expr();
 				}
 				}
-				State = 193;
+				State = 236;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -1151,6 +1625,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_condition; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterCondition(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitCondition(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitCondition(this);
@@ -1161,26 +1645,26 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public ConditionContext condition() {
 		ConditionContext _localctx = new ConditionContext(Context, State);
-		EnterRule(_localctx, 18, RULE_condition);
+		EnterRule(_localctx, 24, RULE_condition);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 194;
+			State = 237;
 			condTerm();
-			State = 199;
+			State = 242;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==OR) {
 				{
 				{
-				State = 195;
+				State = 238;
 				Match(OR);
-				State = 196;
+				State = 239;
 				condTerm();
 				}
 				}
-				State = 201;
+				State = 244;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -1214,6 +1698,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_condTerm; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterCondTerm(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitCondTerm(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitCondTerm(this);
@@ -1224,26 +1718,26 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public CondTermContext condTerm() {
 		CondTermContext _localctx = new CondTermContext(Context, State);
-		EnterRule(_localctx, 20, RULE_condTerm);
+		EnterRule(_localctx, 26, RULE_condTerm);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 202;
+			State = 245;
 			condFact();
-			State = 207;
+			State = 250;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==AND) {
 				{
 				{
-				State = 203;
+				State = 246;
 				Match(AND);
-				State = 204;
+				State = 247;
 				condFact();
 				}
 				}
-				State = 209;
+				State = 252;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -1276,6 +1770,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_condFact; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterCondFact(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitCondFact(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitCondFact(this);
@@ -1286,15 +1790,15 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public CondFactContext condFact() {
 		CondFactContext _localctx = new CondFactContext(Context, State);
-		EnterRule(_localctx, 22, RULE_condFact);
+		EnterRule(_localctx, 28, RULE_condFact);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 210;
+			State = 253;
 			expr();
-			State = 211;
+			State = 254;
 			relop();
-			State = 212;
+			State = 255;
 			expr();
 			}
 		}
@@ -1321,6 +1825,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_cast; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterCast(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitCast(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitCast(this);
@@ -1331,15 +1845,15 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public CastContext cast() {
 		CastContext _localctx = new CastContext(Context, State);
-		EnterRule(_localctx, 24, RULE_cast);
+		EnterRule(_localctx, 30, RULE_cast);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 214;
+			State = 257;
 			Match(LPAREN);
-			State = 215;
+			State = 258;
 			type();
-			State = 216;
+			State = 259;
 			Match(RPAREN);
 			}
 		}
@@ -1377,6 +1891,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_expr; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterExpr(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitExpr(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitExpr(this);
@@ -1387,46 +1911,46 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public ExprContext expr() {
 		ExprContext _localctx = new ExprContext(Context, State);
-		EnterRule(_localctx, 26, RULE_expr);
+		EnterRule(_localctx, 32, RULE_expr);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 219;
+			State = 262;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			if (_la==MINUS) {
 				{
-				State = 218;
+				State = 261;
 				Match(MINUS);
 				}
 			}
 
-			State = 222;
+			State = 265;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,23,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,28,Context) ) {
 			case 1:
 				{
-				State = 221;
+				State = 264;
 				cast();
 				}
 				break;
 			}
-			State = 224;
+			State = 267;
 			term();
-			State = 230;
+			State = 273;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==PLUS || _la==MINUS) {
 				{
 				{
-				State = 225;
+				State = 268;
 				addop();
-				State = 226;
+				State = 269;
 				term();
 				}
 				}
-				State = 232;
+				State = 275;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -1462,6 +1986,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_term; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterTerm(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitTerm(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitTerm(this);
@@ -1472,26 +2006,26 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public TermContext term() {
 		TermContext _localctx = new TermContext(Context, State);
-		EnterRule(_localctx, 28, RULE_term);
+		EnterRule(_localctx, 34, RULE_term);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 233;
+			State = 276;
 			factor();
-			State = 239;
+			State = 282;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 917504L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 7340032L) != 0)) {
 				{
 				{
-				State = 234;
+				State = 277;
 				mulop();
-				State = 235;
+				State = 278;
 				factor();
 				}
 				}
-				State = 241;
+				State = 284;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -1532,6 +2066,16 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RBRACK() { return GetToken(MiniCSharpParser.RBRACK, 0); }
 		public NewFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterNewFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitNewFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNewFactor(this);
@@ -1541,6 +2085,16 @@ public partial class MiniCSharpParser : Parser {
 	public partial class CharFactorContext : FactorContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CHARCONST() { return GetToken(MiniCSharpParser.CHARCONST, 0); }
 		public CharFactorContext(FactorContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterCharFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitCharFactor(this);
+		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1559,6 +2113,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public DesignatorFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterDesignatorFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitDesignatorFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDesignatorFactor(this);
@@ -1571,6 +2135,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public NumberFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterNumberFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitNumberFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNumberFactor(this);
@@ -1580,6 +2154,16 @@ public partial class MiniCSharpParser : Parser {
 	public partial class StringFactorContext : FactorContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STRINGCONST() { return GetToken(MiniCSharpParser.STRINGCONST, 0); }
 		public StringFactorContext(FactorContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterStringFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitStringFactor(this);
+		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1595,6 +2179,16 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAREN() { return GetToken(MiniCSharpParser.RPAREN, 0); }
 		public ParenFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterParenFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitParenFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitParenFactor(this);
@@ -1606,6 +2200,16 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FALSE() { return GetToken(MiniCSharpParser.FALSE, 0); }
 		public BoolFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterBoolFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitBoolFactor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitBoolFactor(this);
@@ -1616,36 +2220,36 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public FactorContext factor() {
 		FactorContext _localctx = new FactorContext(Context, State);
-		EnterRule(_localctx, 30, RULE_factor);
+		EnterRule(_localctx, 36, RULE_factor);
 		int _la;
 		try {
-			State = 269;
+			State = 312;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case IDENT:
 				_localctx = new DesignatorFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 242;
+				State = 285;
 				designator();
-				State = 248;
+				State = 291;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==LPAREN) {
 					{
-					State = 243;
+					State = 286;
 					Match(LPAREN);
-					State = 245;
+					State = 288;
 					ErrorHandler.Sync(this);
 					_la = TokenStream.LA(1);
-					if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 17043504052224L) != 0)) {
+					if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 272687474161664L) != 0)) {
 						{
-						State = 244;
+						State = 287;
 						actPars();
 						}
 					}
 
-					State = 247;
+					State = 290;
 					Match(RPAREN);
 					}
 				}
@@ -1657,7 +2261,7 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new NumberFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 250;
+				State = 293;
 				number();
 				}
 				break;
@@ -1665,7 +2269,7 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new CharFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 251;
+				State = 294;
 				Match(CHARCONST);
 				}
 				break;
@@ -1673,7 +2277,7 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new StringFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 252;
+				State = 295;
 				Match(STRINGCONST);
 				}
 				break;
@@ -1681,7 +2285,7 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new BoolFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 5);
 				{
-				State = 253;
+				State = 296;
 				Match(TRUE);
 				}
 				break;
@@ -1689,7 +2293,7 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new BoolFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 6);
 				{
-				State = 254;
+				State = 297;
 				Match(FALSE);
 				}
 				break;
@@ -1697,28 +2301,28 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new NewFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 7);
 				{
-				State = 255;
+				State = 298;
 				Match(NEW);
-				State = 256;
+				State = 299;
 				Match(IDENT);
-				State = 263;
+				State = 306;
 				ErrorHandler.Sync(this);
 				switch (TokenStream.LA(1)) {
 				case LPAREN:
 					{
-					State = 257;
+					State = 300;
 					Match(LPAREN);
-					State = 258;
+					State = 301;
 					Match(RPAREN);
 					}
 					break;
 				case LBRACK:
 					{
-					State = 259;
+					State = 302;
 					Match(LBRACK);
-					State = 260;
+					State = 303;
 					expr();
-					State = 261;
+					State = 304;
 					Match(RBRACK);
 					}
 					break;
@@ -1749,11 +2353,11 @@ public partial class MiniCSharpParser : Parser {
 				_localctx = new ParenFactorContext(_localctx);
 				EnterOuterAlt(_localctx, 8);
 				{
-				State = 265;
+				State = 308;
 				Match(LPAREN);
-				State = 266;
+				State = 309;
 				expr();
-				State = 267;
+				State = 310;
 				Match(RPAREN);
 				}
 				break;
@@ -1801,6 +2405,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_designator; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterDesignator(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitDesignator(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDesignator(this);
@@ -1811,36 +2425,36 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public DesignatorContext designator() {
 		DesignatorContext _localctx = new DesignatorContext(Context, State);
-		EnterRule(_localctx, 32, RULE_designator);
+		EnterRule(_localctx, 38, RULE_designator);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 271;
+			State = 314;
 			Match(IDENT);
-			State = 280;
+			State = 323;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			while (_la==LBRACK || _la==DOT) {
 				{
-				State = 278;
+				State = 321;
 				ErrorHandler.Sync(this);
 				switch (TokenStream.LA(1)) {
 				case DOT:
 					{
-					State = 272;
+					State = 315;
 					Match(DOT);
-					State = 273;
+					State = 316;
 					Match(IDENT);
 					}
 					break;
 				case LBRACK:
 					{
-					State = 274;
+					State = 317;
 					Match(LBRACK);
-					State = 275;
+					State = 318;
 					expr();
-					State = 276;
+					State = 319;
 					Match(RBRACK);
 					}
 					break;
@@ -1848,7 +2462,7 @@ public partial class MiniCSharpParser : Parser {
 					throw new NoViableAltException(this);
 				}
 				}
-				State = 282;
+				State = 325;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
@@ -1874,6 +2488,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_number; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterNumber(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitNumber(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNumber(this);
@@ -1884,12 +2508,12 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public NumberContext number() {
 		NumberContext _localctx = new NumberContext(Context, State);
-		EnterRule(_localctx, 34, RULE_number);
+		EnterRule(_localctx, 40, RULE_number);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 283;
+			State = 326;
 			_la = TokenStream.LA(1);
 			if ( !(_la==INTCONST || _la==DOUBLECONST) ) {
 			ErrorHandler.RecoverInline(this);
@@ -1924,6 +2548,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_relop; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterRelop(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitRelop(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitRelop(this);
@@ -1934,14 +2568,14 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public RelopContext relop() {
 		RelopContext _localctx = new RelopContext(Context, State);
-		EnterRule(_localctx, 36, RULE_relop);
+		EnterRule(_localctx, 42, RULE_relop);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 285;
+			State = 328;
 			_la = TokenStream.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 66060288L) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 528482304L) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -1970,6 +2604,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_addop; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterAddop(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitAddop(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitAddop(this);
@@ -1980,12 +2624,12 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public AddopContext addop() {
 		AddopContext _localctx = new AddopContext(Context, State);
-		EnterRule(_localctx, 38, RULE_addop);
+		EnterRule(_localctx, 44, RULE_addop);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 287;
+			State = 330;
 			_la = TokenStream.LA(1);
 			if ( !(_la==PLUS || _la==MINUS) ) {
 			ErrorHandler.RecoverInline(this);
@@ -2017,6 +2661,16 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_mulop; } }
 		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.EnterMulop(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
+			if (typedListener != null) typedListener.ExitMulop(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitMulop(this);
@@ -2027,14 +2681,14 @@ public partial class MiniCSharpParser : Parser {
 	[RuleVersion(0)]
 	public MulopContext mulop() {
 		MulopContext _localctx = new MulopContext(Context, State);
-		EnterRule(_localctx, 40, RULE_mulop);
+		EnterRule(_localctx, 46, RULE_mulop);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 289;
+			State = 332;
 			_la = TokenStream.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 917504L) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 7340032L) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -2055,102 +2709,117 @@ public partial class MiniCSharpParser : Parser {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,49,292,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,7,
+		4,1,53,335,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,7,
 		7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,14,
-		2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,1,0,1,0,1,
-		0,1,0,1,0,1,0,5,0,49,8,0,10,0,12,0,52,9,0,1,0,1,0,1,1,1,1,1,1,1,1,5,1,
-		60,8,1,10,1,12,1,63,9,1,1,1,1,1,1,2,1,2,1,2,1,2,5,2,71,8,2,10,2,12,2,74,
-		9,2,1,2,1,2,1,3,1,3,3,3,80,8,3,1,3,1,3,1,3,3,3,85,8,3,1,3,1,3,1,3,1,4,
-		1,4,1,4,1,4,1,4,1,4,5,4,96,8,4,10,4,12,4,99,9,4,1,5,1,5,1,5,3,5,104,8,
-		5,1,6,1,6,1,6,1,6,1,6,3,6,111,8,6,1,6,1,6,1,6,3,6,116,8,6,1,6,1,6,1,6,
-		1,6,1,6,1,6,1,6,1,6,1,6,3,6,127,8,6,1,6,1,6,1,6,3,6,132,8,6,1,6,1,6,3,
-		6,136,8,6,1,6,1,6,3,6,140,8,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,
-		1,6,1,6,3,6,154,8,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,
-		6,168,8,6,1,6,1,6,1,6,1,6,1,6,3,6,175,8,6,1,7,1,7,1,7,5,7,180,8,7,10,7,
-		12,7,183,9,7,1,7,1,7,1,8,1,8,1,8,5,8,190,8,8,10,8,12,8,193,9,8,1,9,1,9,
-		1,9,5,9,198,8,9,10,9,12,9,201,9,9,1,10,1,10,1,10,5,10,206,8,10,10,10,12,
-		10,209,9,10,1,11,1,11,1,11,1,11,1,12,1,12,1,12,1,12,1,13,3,13,220,8,13,
-		1,13,3,13,223,8,13,1,13,1,13,1,13,1,13,5,13,229,8,13,10,13,12,13,232,9,
-		13,1,14,1,14,1,14,1,14,5,14,238,8,14,10,14,12,14,241,9,14,1,15,1,15,1,
-		15,3,15,246,8,15,1,15,3,15,249,8,15,1,15,1,15,1,15,1,15,1,15,1,15,1,15,
-		1,15,1,15,1,15,1,15,1,15,1,15,3,15,264,8,15,1,15,1,15,1,15,1,15,3,15,270,
-		8,15,1,16,1,16,1,16,1,16,1,16,1,16,1,16,5,16,279,8,16,10,16,12,16,282,
-		9,16,1,17,1,17,1,18,1,18,1,19,1,19,1,20,1,20,1,20,0,0,21,0,2,4,6,8,10,
-		12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,0,4,1,0,39,40,1,0,20,25,1,
-		0,15,16,1,0,17,19,320,0,42,1,0,0,0,2,55,1,0,0,0,4,66,1,0,0,0,6,79,1,0,
-		0,0,8,89,1,0,0,0,10,100,1,0,0,0,12,174,1,0,0,0,14,176,1,0,0,0,16,186,1,
-		0,0,0,18,194,1,0,0,0,20,202,1,0,0,0,22,210,1,0,0,0,24,214,1,0,0,0,26,219,
-		1,0,0,0,28,233,1,0,0,0,30,269,1,0,0,0,32,271,1,0,0,0,34,283,1,0,0,0,36,
-		285,1,0,0,0,38,287,1,0,0,0,40,289,1,0,0,0,42,43,5,1,0,0,43,44,5,43,0,0,
-		44,50,5,32,0,0,45,49,3,2,1,0,46,49,3,4,2,0,47,49,3,6,3,0,48,45,1,0,0,0,
-		48,46,1,0,0,0,48,47,1,0,0,0,49,52,1,0,0,0,50,48,1,0,0,0,50,51,1,0,0,0,
-		51,53,1,0,0,0,52,50,1,0,0,0,53,54,5,33,0,0,54,1,1,0,0,0,55,56,3,10,5,0,
-		56,61,5,43,0,0,57,58,5,37,0,0,58,60,5,43,0,0,59,57,1,0,0,0,60,63,1,0,0,
-		0,61,59,1,0,0,0,61,62,1,0,0,0,62,64,1,0,0,0,63,61,1,0,0,0,64,65,5,36,0,
-		0,65,3,1,0,0,0,66,67,5,1,0,0,67,68,5,43,0,0,68,72,5,32,0,0,69,71,3,2,1,
-		0,70,69,1,0,0,0,71,74,1,0,0,0,72,70,1,0,0,0,72,73,1,0,0,0,73,75,1,0,0,
-		0,74,72,1,0,0,0,75,76,5,33,0,0,76,5,1,0,0,0,77,80,3,10,5,0,78,80,5,2,0,
-		0,79,77,1,0,0,0,79,78,1,0,0,0,80,81,1,0,0,0,81,82,5,43,0,0,82,84,5,30,
-		0,0,83,85,3,8,4,0,84,83,1,0,0,0,84,85,1,0,0,0,85,86,1,0,0,0,86,87,5,31,
-		0,0,87,88,3,14,7,0,88,7,1,0,0,0,89,90,3,10,5,0,90,97,5,43,0,0,91,92,5,
-		37,0,0,92,93,3,10,5,0,93,94,5,43,0,0,94,96,1,0,0,0,95,91,1,0,0,0,96,99,
-		1,0,0,0,97,95,1,0,0,0,97,98,1,0,0,0,98,9,1,0,0,0,99,97,1,0,0,0,100,103,
-		5,43,0,0,101,102,5,34,0,0,102,104,5,35,0,0,103,101,1,0,0,0,103,104,1,0,
-		0,0,104,11,1,0,0,0,105,115,3,32,16,0,106,107,5,14,0,0,107,116,3,26,13,
-		0,108,110,5,30,0,0,109,111,3,16,8,0,110,109,1,0,0,0,110,111,1,0,0,0,111,
-		112,1,0,0,0,112,116,5,31,0,0,113,116,5,28,0,0,114,116,5,29,0,0,115,106,
-		1,0,0,0,115,108,1,0,0,0,115,113,1,0,0,0,115,114,1,0,0,0,116,117,1,0,0,
-		0,117,118,5,36,0,0,118,175,1,0,0,0,119,120,5,3,0,0,120,121,5,30,0,0,121,
-		122,3,18,9,0,122,123,5,31,0,0,123,126,3,12,6,0,124,125,5,4,0,0,125,127,
-		3,12,6,0,126,124,1,0,0,0,126,127,1,0,0,0,127,175,1,0,0,0,128,129,5,5,0,
-		0,129,131,5,30,0,0,130,132,3,26,13,0,131,130,1,0,0,0,131,132,1,0,0,0,132,
-		133,1,0,0,0,133,135,5,36,0,0,134,136,3,18,9,0,135,134,1,0,0,0,135,136,
-		1,0,0,0,136,137,1,0,0,0,137,139,5,36,0,0,138,140,3,12,6,0,139,138,1,0,
-		0,0,139,140,1,0,0,0,140,141,1,0,0,0,141,142,5,31,0,0,142,175,3,12,6,0,
-		143,144,5,6,0,0,144,145,5,30,0,0,145,146,3,18,9,0,146,147,5,31,0,0,147,
-		148,3,12,6,0,148,175,1,0,0,0,149,150,5,7,0,0,150,175,5,36,0,0,151,153,
-		5,8,0,0,152,154,3,26,13,0,153,152,1,0,0,0,153,154,1,0,0,0,154,155,1,0,
-		0,0,155,175,5,36,0,0,156,157,5,9,0,0,157,158,5,30,0,0,158,159,3,32,16,
-		0,159,160,5,31,0,0,160,161,5,36,0,0,161,175,1,0,0,0,162,163,5,10,0,0,163,
-		164,5,30,0,0,164,167,3,26,13,0,165,166,5,37,0,0,166,168,3,34,17,0,167,
-		165,1,0,0,0,167,168,1,0,0,0,168,169,1,0,0,0,169,170,5,31,0,0,170,171,5,
-		36,0,0,171,175,1,0,0,0,172,175,3,14,7,0,173,175,5,36,0,0,174,105,1,0,0,
-		0,174,119,1,0,0,0,174,128,1,0,0,0,174,143,1,0,0,0,174,149,1,0,0,0,174,
-		151,1,0,0,0,174,156,1,0,0,0,174,162,1,0,0,0,174,172,1,0,0,0,174,173,1,
-		0,0,0,175,13,1,0,0,0,176,181,5,32,0,0,177,180,3,2,1,0,178,180,3,12,6,0,
-		179,177,1,0,0,0,179,178,1,0,0,0,180,183,1,0,0,0,181,179,1,0,0,0,181,182,
-		1,0,0,0,182,184,1,0,0,0,183,181,1,0,0,0,184,185,5,33,0,0,185,15,1,0,0,
-		0,186,191,3,26,13,0,187,188,5,37,0,0,188,190,3,26,13,0,189,187,1,0,0,0,
-		190,193,1,0,0,0,191,189,1,0,0,0,191,192,1,0,0,0,192,17,1,0,0,0,193,191,
-		1,0,0,0,194,199,3,20,10,0,195,196,5,27,0,0,196,198,3,20,10,0,197,195,1,
-		0,0,0,198,201,1,0,0,0,199,197,1,0,0,0,199,200,1,0,0,0,200,19,1,0,0,0,201,
-		199,1,0,0,0,202,207,3,22,11,0,203,204,5,26,0,0,204,206,3,22,11,0,205,203,
-		1,0,0,0,206,209,1,0,0,0,207,205,1,0,0,0,207,208,1,0,0,0,208,21,1,0,0,0,
-		209,207,1,0,0,0,210,211,3,26,13,0,211,212,3,36,18,0,212,213,3,26,13,0,
-		213,23,1,0,0,0,214,215,5,30,0,0,215,216,3,10,5,0,216,217,5,31,0,0,217,
-		25,1,0,0,0,218,220,5,16,0,0,219,218,1,0,0,0,219,220,1,0,0,0,220,222,1,
-		0,0,0,221,223,3,24,12,0,222,221,1,0,0,0,222,223,1,0,0,0,223,224,1,0,0,
-		0,224,230,3,28,14,0,225,226,3,38,19,0,226,227,3,28,14,0,227,229,1,0,0,
-		0,228,225,1,0,0,0,229,232,1,0,0,0,230,228,1,0,0,0,230,231,1,0,0,0,231,
-		27,1,0,0,0,232,230,1,0,0,0,233,239,3,30,15,0,234,235,3,40,20,0,235,236,
-		3,30,15,0,236,238,1,0,0,0,237,234,1,0,0,0,238,241,1,0,0,0,239,237,1,0,
-		0,0,239,240,1,0,0,0,240,29,1,0,0,0,241,239,1,0,0,0,242,248,3,32,16,0,243,
-		245,5,30,0,0,244,246,3,16,8,0,245,244,1,0,0,0,245,246,1,0,0,0,246,247,
-		1,0,0,0,247,249,5,31,0,0,248,243,1,0,0,0,248,249,1,0,0,0,249,270,1,0,0,
-		0,250,270,3,34,17,0,251,270,5,41,0,0,252,270,5,42,0,0,253,270,5,12,0,0,
-		254,270,5,13,0,0,255,256,5,11,0,0,256,263,5,43,0,0,257,258,5,30,0,0,258,
-		264,5,31,0,0,259,260,5,34,0,0,260,261,3,26,13,0,261,262,5,35,0,0,262,264,
-		1,0,0,0,263,257,1,0,0,0,263,259,1,0,0,0,263,264,1,0,0,0,264,270,1,0,0,
-		0,265,266,5,30,0,0,266,267,3,26,13,0,267,268,5,31,0,0,268,270,1,0,0,0,
-		269,242,1,0,0,0,269,250,1,0,0,0,269,251,1,0,0,0,269,252,1,0,0,0,269,253,
-		1,0,0,0,269,254,1,0,0,0,269,255,1,0,0,0,269,265,1,0,0,0,270,31,1,0,0,0,
-		271,280,5,43,0,0,272,273,5,38,0,0,273,279,5,43,0,0,274,275,5,34,0,0,275,
-		276,3,26,13,0,276,277,5,35,0,0,277,279,1,0,0,0,278,272,1,0,0,0,278,274,
-		1,0,0,0,279,282,1,0,0,0,280,278,1,0,0,0,280,281,1,0,0,0,281,33,1,0,0,0,
-		282,280,1,0,0,0,283,284,7,0,0,0,284,35,1,0,0,0,285,286,7,1,0,0,286,37,
-		1,0,0,0,287,288,7,2,0,0,288,39,1,0,0,0,289,290,7,3,0,0,290,41,1,0,0,0,
-		32,48,50,61,72,79,84,97,103,110,115,126,131,135,139,153,167,174,179,181,
-		191,199,207,219,222,230,239,245,248,263,269,278,280
+		2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,21,
+		2,22,7,22,2,23,7,23,1,0,1,0,1,0,1,0,1,0,1,0,5,0,55,8,0,10,0,12,0,58,9,
+		0,1,0,1,0,1,1,1,1,1,1,1,1,5,1,66,8,1,10,1,12,1,69,9,1,1,1,1,1,1,2,1,2,
+		1,2,1,2,5,2,77,8,2,10,2,12,2,80,9,2,1,2,1,2,1,3,1,3,3,3,86,8,3,1,3,1,3,
+		1,3,3,3,91,8,3,1,3,1,3,1,3,1,4,1,4,1,4,1,4,1,4,1,4,5,4,102,8,4,10,4,12,
+		4,105,9,4,1,5,1,5,1,5,3,5,110,8,5,1,6,1,6,1,6,1,6,1,6,3,6,117,8,6,1,6,
+		1,6,1,6,3,6,122,8,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,133,8,6,1,
+		6,1,6,1,6,3,6,138,8,6,1,6,1,6,3,6,142,8,6,1,6,1,6,3,6,146,8,6,1,6,1,6,
+		1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,5,6,162,8,6,10,6,12,6,
+		165,9,6,1,6,3,6,168,8,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,176,8,6,1,6,1,6,1,
+		6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,190,8,6,1,6,1,6,1,6,1,6,1,6,
+		3,6,197,8,6,1,7,1,7,1,7,1,7,5,7,203,8,7,10,7,12,7,206,9,7,1,8,1,8,1,8,
+		5,8,211,8,8,10,8,12,8,214,9,8,1,9,1,9,3,9,218,8,9,1,10,1,10,1,10,5,10,
+		223,8,10,10,10,12,10,226,9,10,1,10,1,10,1,11,1,11,1,11,5,11,233,8,11,10,
+		11,12,11,236,9,11,1,12,1,12,1,12,5,12,241,8,12,10,12,12,12,244,9,12,1,
+		13,1,13,1,13,5,13,249,8,13,10,13,12,13,252,9,13,1,14,1,14,1,14,1,14,1,
+		15,1,15,1,15,1,15,1,16,3,16,263,8,16,1,16,3,16,266,8,16,1,16,1,16,1,16,
+		1,16,5,16,272,8,16,10,16,12,16,275,9,16,1,17,1,17,1,17,1,17,5,17,281,8,
+		17,10,17,12,17,284,9,17,1,18,1,18,1,18,3,18,289,8,18,1,18,3,18,292,8,18,
+		1,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,3,18,
+		307,8,18,1,18,1,18,1,18,1,18,3,18,313,8,18,1,19,1,19,1,19,1,19,1,19,1,
+		19,1,19,5,19,322,8,19,10,19,12,19,325,9,19,1,20,1,20,1,21,1,21,1,22,1,
+		22,1,23,1,23,1,23,0,0,24,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,
+		34,36,38,40,42,44,46,0,4,1,0,43,44,1,0,23,28,1,0,18,19,1,0,20,22,366,0,
+		48,1,0,0,0,2,61,1,0,0,0,4,72,1,0,0,0,6,85,1,0,0,0,8,95,1,0,0,0,10,106,
+		1,0,0,0,12,196,1,0,0,0,14,198,1,0,0,0,16,207,1,0,0,0,18,217,1,0,0,0,20,
+		219,1,0,0,0,22,229,1,0,0,0,24,237,1,0,0,0,26,245,1,0,0,0,28,253,1,0,0,
+		0,30,257,1,0,0,0,32,262,1,0,0,0,34,276,1,0,0,0,36,312,1,0,0,0,38,314,1,
+		0,0,0,40,326,1,0,0,0,42,328,1,0,0,0,44,330,1,0,0,0,46,332,1,0,0,0,48,49,
+		5,1,0,0,49,50,5,47,0,0,50,56,5,35,0,0,51,55,3,2,1,0,52,55,3,4,2,0,53,55,
+		3,6,3,0,54,51,1,0,0,0,54,52,1,0,0,0,54,53,1,0,0,0,55,58,1,0,0,0,56,54,
+		1,0,0,0,56,57,1,0,0,0,57,59,1,0,0,0,58,56,1,0,0,0,59,60,5,36,0,0,60,1,
+		1,0,0,0,61,62,3,10,5,0,62,67,5,47,0,0,63,64,5,40,0,0,64,66,5,47,0,0,65,
+		63,1,0,0,0,66,69,1,0,0,0,67,65,1,0,0,0,67,68,1,0,0,0,68,70,1,0,0,0,69,
+		67,1,0,0,0,70,71,5,39,0,0,71,3,1,0,0,0,72,73,5,1,0,0,73,74,5,47,0,0,74,
+		78,5,35,0,0,75,77,3,2,1,0,76,75,1,0,0,0,77,80,1,0,0,0,78,76,1,0,0,0,78,
+		79,1,0,0,0,79,81,1,0,0,0,80,78,1,0,0,0,81,82,5,36,0,0,82,5,1,0,0,0,83,
+		86,3,10,5,0,84,86,5,2,0,0,85,83,1,0,0,0,85,84,1,0,0,0,86,87,1,0,0,0,87,
+		88,5,47,0,0,88,90,5,33,0,0,89,91,3,8,4,0,90,89,1,0,0,0,90,91,1,0,0,0,91,
+		92,1,0,0,0,92,93,5,34,0,0,93,94,3,20,10,0,94,7,1,0,0,0,95,96,3,10,5,0,
+		96,103,5,47,0,0,97,98,5,40,0,0,98,99,3,10,5,0,99,100,5,47,0,0,100,102,
+		1,0,0,0,101,97,1,0,0,0,102,105,1,0,0,0,103,101,1,0,0,0,103,104,1,0,0,0,
+		104,9,1,0,0,0,105,103,1,0,0,0,106,109,5,47,0,0,107,108,5,37,0,0,108,110,
+		5,38,0,0,109,107,1,0,0,0,109,110,1,0,0,0,110,11,1,0,0,0,111,121,3,38,19,
+		0,112,113,5,17,0,0,113,122,3,32,16,0,114,116,5,33,0,0,115,117,3,22,11,
+		0,116,115,1,0,0,0,116,117,1,0,0,0,117,118,1,0,0,0,118,122,5,34,0,0,119,
+		122,5,31,0,0,120,122,5,32,0,0,121,112,1,0,0,0,121,114,1,0,0,0,121,119,
+		1,0,0,0,121,120,1,0,0,0,122,123,1,0,0,0,123,124,5,39,0,0,124,197,1,0,0,
+		0,125,126,5,3,0,0,126,127,5,33,0,0,127,128,3,24,12,0,128,129,5,34,0,0,
+		129,132,3,12,6,0,130,131,5,4,0,0,131,133,3,12,6,0,132,130,1,0,0,0,132,
+		133,1,0,0,0,133,197,1,0,0,0,134,135,5,5,0,0,135,137,5,33,0,0,136,138,3,
+		32,16,0,137,136,1,0,0,0,137,138,1,0,0,0,138,139,1,0,0,0,139,141,5,39,0,
+		0,140,142,3,24,12,0,141,140,1,0,0,0,141,142,1,0,0,0,142,143,1,0,0,0,143,
+		145,5,39,0,0,144,146,3,12,6,0,145,144,1,0,0,0,145,146,1,0,0,0,146,147,
+		1,0,0,0,147,148,5,34,0,0,148,197,3,12,6,0,149,150,5,6,0,0,150,151,5,33,
+		0,0,151,152,3,24,12,0,152,153,5,34,0,0,153,154,3,12,6,0,154,197,1,0,0,
+		0,155,156,5,14,0,0,156,157,5,33,0,0,157,158,3,32,16,0,158,159,5,34,0,0,
+		159,163,5,35,0,0,160,162,3,14,7,0,161,160,1,0,0,0,162,165,1,0,0,0,163,
+		161,1,0,0,0,163,164,1,0,0,0,164,167,1,0,0,0,165,163,1,0,0,0,166,168,3,
+		16,8,0,167,166,1,0,0,0,167,168,1,0,0,0,168,169,1,0,0,0,169,170,5,36,0,
+		0,170,197,1,0,0,0,171,172,5,7,0,0,172,197,5,39,0,0,173,175,5,8,0,0,174,
+		176,3,32,16,0,175,174,1,0,0,0,175,176,1,0,0,0,176,177,1,0,0,0,177,197,
+		5,39,0,0,178,179,5,9,0,0,179,180,5,33,0,0,180,181,3,38,19,0,181,182,5,
+		34,0,0,182,183,5,39,0,0,183,197,1,0,0,0,184,185,5,10,0,0,185,186,5,33,
+		0,0,186,189,3,32,16,0,187,188,5,40,0,0,188,190,3,40,20,0,189,187,1,0,0,
+		0,189,190,1,0,0,0,190,191,1,0,0,0,191,192,5,34,0,0,192,193,5,39,0,0,193,
+		197,1,0,0,0,194,197,3,20,10,0,195,197,5,39,0,0,196,111,1,0,0,0,196,125,
+		1,0,0,0,196,134,1,0,0,0,196,149,1,0,0,0,196,155,1,0,0,0,196,171,1,0,0,
+		0,196,173,1,0,0,0,196,178,1,0,0,0,196,184,1,0,0,0,196,194,1,0,0,0,196,
+		195,1,0,0,0,197,13,1,0,0,0,198,199,5,15,0,0,199,200,3,18,9,0,200,204,5,
+		42,0,0,201,203,3,12,6,0,202,201,1,0,0,0,203,206,1,0,0,0,204,202,1,0,0,
+		0,204,205,1,0,0,0,205,15,1,0,0,0,206,204,1,0,0,0,207,208,5,16,0,0,208,
+		212,5,42,0,0,209,211,3,12,6,0,210,209,1,0,0,0,211,214,1,0,0,0,212,210,
+		1,0,0,0,212,213,1,0,0,0,213,17,1,0,0,0,214,212,1,0,0,0,215,218,3,40,20,
+		0,216,218,5,45,0,0,217,215,1,0,0,0,217,216,1,0,0,0,218,19,1,0,0,0,219,
+		224,5,35,0,0,220,223,3,2,1,0,221,223,3,12,6,0,222,220,1,0,0,0,222,221,
+		1,0,0,0,223,226,1,0,0,0,224,222,1,0,0,0,224,225,1,0,0,0,225,227,1,0,0,
+		0,226,224,1,0,0,0,227,228,5,36,0,0,228,21,1,0,0,0,229,234,3,32,16,0,230,
+		231,5,40,0,0,231,233,3,32,16,0,232,230,1,0,0,0,233,236,1,0,0,0,234,232,
+		1,0,0,0,234,235,1,0,0,0,235,23,1,0,0,0,236,234,1,0,0,0,237,242,3,26,13,
+		0,238,239,5,30,0,0,239,241,3,26,13,0,240,238,1,0,0,0,241,244,1,0,0,0,242,
+		240,1,0,0,0,242,243,1,0,0,0,243,25,1,0,0,0,244,242,1,0,0,0,245,250,3,28,
+		14,0,246,247,5,29,0,0,247,249,3,28,14,0,248,246,1,0,0,0,249,252,1,0,0,
+		0,250,248,1,0,0,0,250,251,1,0,0,0,251,27,1,0,0,0,252,250,1,0,0,0,253,254,
+		3,32,16,0,254,255,3,42,21,0,255,256,3,32,16,0,256,29,1,0,0,0,257,258,5,
+		33,0,0,258,259,3,10,5,0,259,260,5,34,0,0,260,31,1,0,0,0,261,263,5,19,0,
+		0,262,261,1,0,0,0,262,263,1,0,0,0,263,265,1,0,0,0,264,266,3,30,15,0,265,
+		264,1,0,0,0,265,266,1,0,0,0,266,267,1,0,0,0,267,273,3,34,17,0,268,269,
+		3,44,22,0,269,270,3,34,17,0,270,272,1,0,0,0,271,268,1,0,0,0,272,275,1,
+		0,0,0,273,271,1,0,0,0,273,274,1,0,0,0,274,33,1,0,0,0,275,273,1,0,0,0,276,
+		282,3,36,18,0,277,278,3,46,23,0,278,279,3,36,18,0,279,281,1,0,0,0,280,
+		277,1,0,0,0,281,284,1,0,0,0,282,280,1,0,0,0,282,283,1,0,0,0,283,35,1,0,
+		0,0,284,282,1,0,0,0,285,291,3,38,19,0,286,288,5,33,0,0,287,289,3,22,11,
+		0,288,287,1,0,0,0,288,289,1,0,0,0,289,290,1,0,0,0,290,292,5,34,0,0,291,
+		286,1,0,0,0,291,292,1,0,0,0,292,313,1,0,0,0,293,313,3,40,20,0,294,313,
+		5,45,0,0,295,313,5,46,0,0,296,313,5,12,0,0,297,313,5,13,0,0,298,299,5,
+		11,0,0,299,306,5,47,0,0,300,301,5,33,0,0,301,307,5,34,0,0,302,303,5,37,
+		0,0,303,304,3,32,16,0,304,305,5,38,0,0,305,307,1,0,0,0,306,300,1,0,0,0,
+		306,302,1,0,0,0,306,307,1,0,0,0,307,313,1,0,0,0,308,309,5,33,0,0,309,310,
+		3,32,16,0,310,311,5,34,0,0,311,313,1,0,0,0,312,285,1,0,0,0,312,293,1,0,
+		0,0,312,294,1,0,0,0,312,295,1,0,0,0,312,296,1,0,0,0,312,297,1,0,0,0,312,
+		298,1,0,0,0,312,308,1,0,0,0,313,37,1,0,0,0,314,323,5,47,0,0,315,316,5,
+		41,0,0,316,322,5,47,0,0,317,318,5,37,0,0,318,319,3,32,16,0,319,320,5,38,
+		0,0,320,322,1,0,0,0,321,315,1,0,0,0,321,317,1,0,0,0,322,325,1,0,0,0,323,
+		321,1,0,0,0,323,324,1,0,0,0,324,39,1,0,0,0,325,323,1,0,0,0,326,327,7,0,
+		0,0,327,41,1,0,0,0,328,329,7,1,0,0,329,43,1,0,0,0,330,331,7,2,0,0,331,
+		45,1,0,0,0,332,333,7,3,0,0,333,47,1,0,0,0,37,54,56,67,78,85,90,103,109,
+		116,121,132,137,141,145,163,167,175,189,196,204,212,217,222,224,234,242,
+		250,262,265,273,282,288,291,306,312,321,323
 	};
 
 	public static readonly ATN _ATN =
@@ -2158,3 +2827,4 @@ public partial class MiniCSharpParser : Parser {
 
 
 }
+} // namespace generated

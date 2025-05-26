@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using generated;
+
 namespace Compiladores
 {
     using Antlr4.Runtime;

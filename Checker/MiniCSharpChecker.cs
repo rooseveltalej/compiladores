@@ -1,4 +1,5 @@
 ﻿using Antlr4.Runtime.Tree;
+using generated;
 
 namespace Compiladores.Checker
 {

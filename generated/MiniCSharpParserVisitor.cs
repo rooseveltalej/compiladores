@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from C:/Users/Bayron/RiderProjects/compiladores/MiniCSharpParser.g4 by ANTLR 4.13.2
+// Generated from /Volumes/macOs/rooseveltalej/Documents/Compiladores/MiniCSharpParser.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -19,6 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
+namespace generated {
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 using IToken = Antlr4.Runtime.IToken;
@@ -96,6 +97,13 @@ public interface IMiniCSharpParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitWhileStatement([NotNull] MiniCSharpParser.WhileStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>SwitchStatement</c>
+	/// labeled alternative in <see cref="MiniCSharpParser.statement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSwitchStatement([NotNull] MiniCSharpParser.SwitchStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>BreakStatement</c>
 	/// labeled alternative in <see cref="MiniCSharpParser.statement"/>.
 	/// </summary>
@@ -137,6 +145,24 @@ public interface IMiniCSharpParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitEmptyStatement([NotNull] MiniCSharpParser.EmptyStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="MiniCSharpParser.switchCase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSwitchCase([NotNull] MiniCSharpParser.SwitchCaseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="MiniCSharpParser.defaultCase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDefaultCase([NotNull] MiniCSharpParser.DefaultCaseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="MiniCSharpParser.constant"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitConstant([NotNull] MiniCSharpParser.ConstantContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="MiniCSharpParser.block"/>.
 	/// </summary>
@@ -265,3 +291,4 @@ public interface IMiniCSharpParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMulop([NotNull] MiniCSharpParser.MulopContext context);
 }
+} // namespace generated
