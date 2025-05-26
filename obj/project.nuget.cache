@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "0RsQsCzAwEk=",
+  "dgSpecHash": "LTT7NhQmI/Q=",
   "success": true,
-  "projectFilePath": "/Volumes/macOs/rooseveltalej/Documents/Compiladores/Compiladores.csproj",
+  "projectFilePath": "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj",
   "expectedPackageFiles": [
-    "/Volumes/macOs/rooseveltalej/.nuget/packages/antlr4.runtime.standard/4.13.1/antlr4.runtime.standard.4.13.1.nupkg.sha512"
+    "C:\\Users\\Bayron\\.nuget\\packages\\antlr4.runtime.standard\\4.13.1\\antlr4.runtime.standard.4.13.1.nupkg.sha512"
   ],
   "logs": []
 }

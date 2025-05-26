@@ -1,77 +1,75 @@
 // ==============================
 //         LEXER RULES
 // ==============================
+// MiniCSharpLexer.g4
 lexer grammar MiniCSharpLexer;
 
+options { language = CSharp; }
 
-// Palabras clave
-CLASS       : 'class';
-VOID        : 'void';
-IF          : 'if';
-ELSE        : 'else';
-FOR         : 'for';
-WHILE       : 'while';
-BREAK       : 'break';
-RETURN      : 'return';
-READ        : 'read';
-WRITE       : 'write';
-NEW         : 'new';
-TRUE        : 'true';
-FALSE       : 'false';
+// --- Keywords ---
+CLASS: 'class';
+VOID: 'void';
+IF: 'if';
+ELSE: 'else';
+FOR: 'for';
+WHILE: 'while';
+BREAK: 'break';
+RETURN: 'return';
+READ: 'read';
+WRITE: 'write';
+NEW: 'new';
+TRUE: 'true';
+FALSE: 'false';
 
-// Operadores y símbolos
-ASSIGN      : '=';
-PLUS        : '+';
-MINUS       : '-';
-MULT        : '*';
-DIV         : '/';
-MOD         : '%';
-EQUAL       : '==';
-NOTEQUAL    : '!=';
-LT          : '<';
-LE          : '<=';
-GT          : '>';
-GE          : '>=';
-AND         : '&&';
-OR          : '||';
-INC         : '++';
-DEC         : '--';
+// --- Operators & Punctuation ---
+ASSIGN: '=';
+PLUS: '+';
+MINUS: '-';
+MULT: '*';
+DIV: '/';
+MOD: '%';
+EQUAL: '==';
+NOTEQUAL: '!=';
+LT: '<';
+LE: '<=';
+GT: '>';
+GE: '>=';
+AND: '&&';
+OR: '||';
+INC: '++';
+DEC: '--';
+LPAREN: '(';
+RPAREN: ')';
+LBRACE: '{';
+RBRACE: '}';
+LBRACK: '[';
+RBRACK: ']';
+SEMI: ';';
+COMMA: ',';
+DOT: '.';
 
-LPAREN      : '(';
-RPAREN      : ')';
-LBRACE      : '{';
-RBRACE      : '}';
-LBRACK      : '[';
-RBRACK      : ']';
-SEMI        : ';';
-COMMA       : ',';
-DOT         : '.';
+// --- Literals ---
+INTCONST: '0' | [1-9] DIGIT*;
+DOUBLECONST: DIGIT+ '.' DIGIT+;
+CHARCONST: '\'' (ESC_SEQ | ~['\\]) '\''; // Permite escapes o cualquier cosa menos ' y \
+STRINGCONST: '"' (ESC_SEQ | ~["\\])* '"'; // Permite escapes o cualquier cosa menos " y \
 
-// Literales
-fragment DIGIT : [0-9];
-fragment LETTER : [a-zA-Z_];
+// --- Identifier ---
+IDENT: LETTER (LETTER | DIGIT)*;
 
-INTCONST    : '0' | [1-9] DIGIT*;
-DOUBLECONST : DIGIT+ '.' DIGIT+;
+// --- Whitespace & Comments ---
+WS: [ \t\r\n]+ -> skip;
+LINE_COMMENT: '//' ~[\r\n]* -> skip;
+BLOCK_COMMENT: '/*' -> pushMode(CM_MODE), skip;
 
-CHARCONST
-    : '\'' ( ~['\\\r\n] | '\\' . ) '\'' ;
+// --- Fragments ---
+fragment LETTER: [a-zA-Z_];
+fragment DIGIT: [0-9];
+// Secuencias de escape comunes. C# tiene más (Unicode, etc.), pero estas son las básicas.
+fragment ESC_SEQ: '\\' [btnr"'\\];
 
-STRINGCONST
-    : '"' ( ~["\\\r\n] | '\\' . )* '"' ;
-
-// Identificadores
-IDENT       : LETTER (LETTER | DIGIT)* ;
-
-// Comentarios y espacios
-WS
-    : [ \t\r\n]+ -> skip
-    ;
-
-LINE_COMMENT
-    : '//' ~[\r\n]* -> skip
-    ;
-
-COMMENT
-    : '/*' (COMMENT | .)*? '*/' -> skip
-    ;
+// --- Comment Mode (Para Anidamiento) ---
+mode CM_MODE;
+    CM_START: '/*' -> pushMode(CM_MODE), skip;
+    CM_END: '*/' -> popMode, skip;
+    CM_TEXT: . -> skip;

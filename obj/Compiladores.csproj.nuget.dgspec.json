@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Volumes/macOs/rooseveltalej/Documents/Compiladores/Compiladores.csproj": {}
+    "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj": {}
   },
   "projects": {
-    "/Volumes/macOs/rooseveltalej/Documents/Compiladores/Compiladores.csproj": {
+    "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Volumes/macOs/rooseveltalej/Documents/Compiladores/Compiladores.csproj",
+        "projectUniqueName": "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj",
         "projectName": "Compiladores",
-        "projectPath": "/Volumes/macOs/rooseveltalej/Documents/Compiladores/Compiladores.csproj",
-        "packagesPath": "/Volumes/macOs/rooseveltalej/.nuget/packages/",
-        "outputPath": "/Volumes/macOs/rooseveltalej/Documents/Compiladores/obj/",
+        "projectPath": "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj",
+        "packagesPath": "C:\\Users\\Bayron\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Bayron\\RiderProjects\\compiladores\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Volumes/macOs/rooseveltalej/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Bayron\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -64,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.409/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\Bayron\\.dotnet\\sdk\\8.0.406/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

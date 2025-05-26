@@ -15,4 +15,10 @@
       <Content Include="MiniCSharpLexer.g4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="test.mcs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
