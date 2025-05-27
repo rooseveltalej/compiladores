@@ -76,7 +76,7 @@ block: LBRACE (varDecl | statement)* RBRACE;
 actPars: expr (COMMA expr)*;
 condition: condTerm (OR condTerm)*;
 condTerm: condFact (AND condFact)*;
-condFact: expr relop expr;
+condFact: expr (relop expr)?;
 cast: LPAREN type RPAREN;
 expr: MINUS? cast? term (addop term)*;
 term: factor (mulop factor)*;

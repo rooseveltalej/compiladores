@@ -7,15 +7,30 @@ namespace Compiladores
     using Antlr4.Runtime;
     using System;
     using System.IO;
+    using Compiladores.Checker; 
 
     public class Compiler
     {
         public static void Main(string[] args)
         {
-            string filePath = "test.mcs"; // Tu archivo de prueba MiniC#
+            string filePath = "/Volumes/macOs/rooseveltalej/Documents/Compiladores/myProgram.mcs"; // Tu archivo de prueba MiniC#
 
+            if (args.Length > 0) { // Permitir pasar el archivo como argumento
+                filePath = args[0];
+            }
+            
+            if (!File.Exists(filePath)) {
+                Console.WriteLine($"Error: Input file not found at '{filePath}'");
+                return;
+            }
+            Console.WriteLine($"Compiling main file: {filePath}");
+            
             try
             {
+                
+                // << NUEVO: Crear el CompilationManager >>
+                CompilationManager compilationManager = new CompilationManager(filePath);
+                
                 ICharStream stream = CharStreams.fromPath(filePath);
                 MiniCSharpLexer lexer = new MiniCSharpLexer(stream);
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -46,7 +61,34 @@ namespace Compiladores
                 {
                     Console.WriteLine("Lexer and Parser finished successfully!");
                     Console.WriteLine("Proceeding to Semantic Analysis...");
-                    // Aquí llamarías a tu MiniCSharpChecker con el 'tree'
+                    
+                    
+                    TablaSimbolos mainSymbolTable = new TablaSimbolos(); // Tabla para el archivo principal
+                    // << MODIFICADO: Pasar CompilationManager y la tabla de símbolos >>
+                    MiniCSharpChecker semanticChecker = new MiniCSharpChecker(compilationManager, mainSymbolTable, filePath);
+
+                    
+                    // Visitar el árbol de sintaxis (la raíz, usualmente 'program')
+                    // El método Visit del visitor iniciará el recorrido.
+                    // 'tree' es el ProgramContext devuelto por parser.program()
+                    semanticChecker.Visit(tree);
+                    
+                    // Comprobar si hubo errores semánticos
+                    if (semanticChecker.ErrorMessages.Count > 0)
+                    {
+                        Console.WriteLine($"Semantic Analysis FAILED with {semanticChecker.ErrorMessages.Count} error(s):");
+                        foreach (string error in semanticChecker.ErrorMessages)
+                        {
+                            Console.WriteLine(error);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Semantic Analysis for main file (and its dependencies) finished successfully! No errors found.");
+                        // Aquí, si todo está bien, procederías a la generación de código.
+                        semanticChecker.SymbolTable.PrintFlatTable();
+                    }
+                    
                 }
             }
             catch (IOException ex)

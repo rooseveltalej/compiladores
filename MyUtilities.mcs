@@ -1,0 +1,13 @@
+// MyUtilities.mcs
+class MyUtilities // El nombre de la clase DEBE coincidir con el nombre del archivo/módulo
+{
+    int PI_APPROX; // Un campo. En MiniCSharp no hay 'const' en la declaración de campos.
+                   // Su valor se asignaría, por ejemplo, en un constructor o método.
+                   // Para este ejemplo, solo necesitamos que exista.
+
+    // Podrías tener un método para inicializarlo si fuera necesario,
+    // o asumir que se inicializa a 0 por defecto si no hay constructores explícitos.
+    // void Initialize() {
+    //     PI_APPROX = 3; 
+    // }
+}
