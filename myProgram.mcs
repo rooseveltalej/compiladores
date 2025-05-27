@@ -1,0 +1,34 @@
+// Asumiendo que MiniCSharp pudiera manejar múltiples archivos y "using" los vinculara.
+using MyUtilities; // Intención: hacer accesibles los elementos de la clase MyUtilities
+
+class MyProgram
+{
+    void main()
+    {
+        int localPi;
+        char first;
+
+        // Escenario deseado 1: Acceder a miembros de la clase "importada"
+        // Esto requeriría que 'MyUtilities' se resuelva como un tipo Y que
+        // se pueda instanciar, o que sus miembros sean estáticos.
+        // MyUtilities utils;
+        // utils = new MyUtilities(); 
+        // localPi = utils.PI_APPROX; 
+        // first = utils.GetFirstChar("test");
+
+        // Escenario deseado 2: Que los miembros de MyUtilities se vuelvan "globales" (menos probable)
+        // localPi = PI_APPROX; 
+        // first = GetFirstChar("test");
+
+        // Cómo funciona actualmente:
+        // El parser acepta "using MyUtilities;", pero el checker no hace nada con "MyUtilities".
+        // Si intentas usar PI_APPROX o GetFirstChar, el checker dirá que no están definidos
+        // porque no están en el ámbito global ni en MyProgram, y "MyUtilities" no se ha procesado
+        // para exponer sus símbolos.
+
+        write("Ejemplo de using."); 
+        // Si MyUtilities.PI_APPROX fuera una constante REAL y using la hiciera visible:
+        // write(MyUtilities.PI_APPROX); // Esto requeriría que MyUtilities sea un símbolo de clase
+                                      // y PI_APPROX un miembro accesible.
+    }
+}

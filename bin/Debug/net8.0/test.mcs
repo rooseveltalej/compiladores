@@ -1,7 +1,0 @@
-﻿class MiPrograma
-{
-    void Main()
-    {
-        write("Hola Mundo desde MiniC#");
-    }
-}
