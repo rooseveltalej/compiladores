@@ -1,17 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "LTT7NhQmI/Q=",
+  "dgSpecHash": "4YzGcWtszao=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj",
+  "projectFilePath": "C:\\Users\\antho\\programming\\compiladores\\Compiladores.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Bayron\\.nuget\\packages\\antlr4.runtime.standard\\4.13.1\\antlr4.runtime.standard.4.13.1.nupkg.sha512"
+    "C:\\Users\\antho\\.nuget\\packages\\antlr4.runtime.standard\\4.13.1\\antlr4.runtime.standard.4.13.1.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problem reading the cache file C:\\Users\\Bayron\\RiderProjects\\compiladores\\obj\\project.nuget.cache : Found invalid data while decoding."
-    }
-  ]
+  "logs": []
 }

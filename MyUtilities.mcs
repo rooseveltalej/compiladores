@@ -13,7 +13,7 @@ class MiProgramaPrueba
         b = 5;
         // write(b); // Comentado o eliminado
 
-        resultado = a * b; 
+        resultado = a - b; 
         write(resultado);    // Solo este write se ejecutará y mostrará 50
     }
 }

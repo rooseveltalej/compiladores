@@ -1,0 +1,18 @@
+﻿class MiProgramaPrueba
+{
+    void Main() // Asegúrate que tu CodeGen defina este Main como public static
+    {
+        write("--- Inicio de la ejecución de test.mcs ---");
+        write("Hola desde MiniCSharp ejecutado en memoria!");
+        write(123);
+        write(true);
+        write(false);
+        write('X');
+        // A medida que implementes más cosas en CodeGen, puedes añadir más aquí:
+        // write(10 + 5); // Necesitará VisitExpr, VisitTerm, OpCodes.Add
+        // int a;
+        // a = 10;
+        // write(a); // Necesitará VisitVarDecl (local), VisitDesignatorStatement (asignación), VisitDesignatorFactor (leer variable)
+        write("--- Fin de la ejecución de test.mcs ---");
+    }
+}
