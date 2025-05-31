@@ -1,20 +1,78 @@
-// MainProgram.mcs
-using MyUtilities; // Esto hace que el TIPO "MyUtilities" esté disponible
+// Archivo: TestControl.mcs (Corregido)
+class TestControl {
+    void Main() {
+        int a;
+        int b;
+        int count;
+        int selector;
 
-class MyProgram
-{
-    void main()
-    {
-        int localPi;
-        char first;
-        MyUtilities utilObj; 
+        write(1000); // Delimitador inicial
 
-        utilObj = new MyUtilities(); // <<-- CORREGIDO: Instancia de "MyUtilities"
+        a = 10;
+        b = 5;
+
+        // Prueba if (sin else)
+        if (a > b) {
+            write(1); // Se espera: 1
+        }
+        if (b > a) {
+            write(99); // No se espera
+        }
+
+        write(2000); // Delimitador
+
+        // Prueba if (con else)
+        if (b > a) {
+            write(98); // No se espera
+        } else {
+            write(2); // Se espera: 2
+        }
+
+        selector = 3;
+        if (selector == 1) {
+            write(101);
+        } else if (selector == 2) { // Esto es un if anidado en el else del if anterior
+            write(102);
+        } else {
+            write(103); // Se espera: 103
+        }
         
-        // Para que la siguiente línea funcione, MyUtilities.mcs debe definir una clase MyUtilities
-        // que tenga un campo (o propiedad accesible) llamado PI_APPROX.
-        localPi = utilObj.PI_APPROX; 
+        write(3000); // Delimitador
 
-        write("Ejemplo de using."); 
+        // Prueba while
+        count = 0;
+        while (count < 3) {
+            write(count); // Se espera: 0, luego 1, luego 2
+            count++;
+        }
+        write(count); // Se espera: 3 (valor de count después del bucle)
+
+        write(4000); // Delimitador
+        
+        // Prueba while que no se ejecuta
+        count = 5;
+        while (count < 3) {
+            write(97); // No se espera
+            count++;
+        }
+        write(count); // Se espera: 5
+
+        write(5000); // Delimitador
+
+        // Prueba de if anidado dentro de while
+        a = 0;
+        while (a < 2) { // Se ejecuta para a=0, a=1
+            b = 15;
+            if (a == 0) { 
+                write(77); // Se espera para a=0
+                b = b + 1; // b = 16
+            } else {
+                write(66); // Se espera para a=1
+                b = b + 2; // b = 17
+            }
+            write(b); // Se espera 16, luego 17
+            a++;
+        }
+        write(9999); // Delimitador final
     }
 }

@@ -12,7 +12,7 @@ namespace Compiladores
     {
         public static void Compile(string[] args)
         {
-            string filePath = @"C:\Users\antho\programming\compiladores\MyUtilities.mcs";
+            string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\myProgram.mcs";
 
             if (args.Length > 0)
                 filePath = args[0];

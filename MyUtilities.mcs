@@ -5,7 +5,13 @@ class MiProgramaPrueba
     {
         int a;
         int b;
-        int resultado;
+        int resultado
+
+
+
+
+
+
 
         a = 10;
         // write(a); // Comentado o eliminado
