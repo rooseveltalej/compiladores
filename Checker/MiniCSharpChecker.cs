@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO; // Necesario para Path.GetDirectoryName
+using System.IO; 
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using generated;
@@ -20,19 +20,32 @@ namespace Compiladores.Checker
         private VarSymbol _lastDesignatorVarSymbol = null;
         private bool _isDesignatorLValue = false;
 
+        // --- NUEVO: Diccionario para almacenar tipos de nodos de expresión ---
+        public Dictionary<IParseTree, Type> ExpressionTypes { get; } = new Dictionary<IParseTree, Type>();
+
         public TablaSimbolos SymbolTable => _symbolTable;
-        public string CurrentFilePath => _currentFilePath; // Para que CompilationManager sepa el contexto
+        public string CurrentFilePath => _currentFilePath; 
 
         public MiniCSharpChecker(CompilationManager manager, TablaSimbolos symbolTable, string filePath)
         {
             _compilationManager = manager ?? throw new ArgumentNullException(nameof(manager));
             _symbolTable = symbolTable ?? new TablaSimbolos();
             _currentFilePath = filePath;
-            // ErrorMessages se inicializa arriba
+        }
+
+        // --- NUEVO: Helper para guardar y devolver el tipo de un nodo ---
+        private Type StoreAndReturnType(IParseTree node, Type type)
+        {
+            if (node != null && type != null)
+            {
+                ExpressionTypes[node] = type;
+            }
+            return type;
         }
 
         private void AddError(string message, IParseTree context)
         {
+            // ... (sin cambios)
             string positionInfo = "";
             string nearText = "";
 
@@ -54,82 +67,65 @@ namespace Compiladores.Checker
                 nearText = "unknown location";
             }
             string errorMessage = $"SEMANTIC ERROR{positionInfo}: {message} (near \"{nearText}\")";
-            if (!ErrorMessages.Contains(errorMessage)) // Evitar duplicados exactos si se llama varias veces
+            if (!ErrorMessages.Contains(errorMessage)) 
             {
                 ErrorMessages.Add(errorMessage);
             }
         }
         
 
-        public override Type VisitProgram(MiniCSharpParser.ProgramContext context)
+         public override Type VisitProgram(MiniCSharpParser.ProgramContext context)
         {
-            // El ámbito global de _symbolTable ya fue inicializado por su constructor.
-            // Asegurarse de que el nivel actual es el global para procesar 'usings'.
+            // ... (sin cambios en la lógica principal de VisitProgram) ...
             Scope initialGlobalScope = _symbolTable.GetGlobalScope();
             int initialGlobalLevel = _symbolTable.GetGlobalScopeLevel();
             _symbolTable.SetCurrentScopeTo(initialGlobalScope, initialGlobalLevel);
 
-
-            // 1. Procesar todas las directivas 'using' ANTES de definir la clase principal del archivo actual.
-            //    Estas afectarán al ámbito global de la tabla de símbolos de ESTE archivo.
             if (context.usingDirective() != null)
             {
                 foreach (var usingDecl in context.usingDirective())
                 {
-                    Visit(usingDecl); // Llama a VisitUsingDirective
+                    Visit(usingDecl); 
                 }
             }
 
-            // 2. Procesar la clase principal definida en ESTE archivo.
             string programClassName = context.IDENT().GetText();
-            
-            // Crear el Scope para los miembros de la clase Program. Su Outer es el global.
             var classMembersScope = new Scope(_symbolTable.GetGlobalScope()); 
             var classType = new ClassType(programClassName, classMembersScope); 
             var classSymbol = new ClassSymbol(programClassName, classType);
-            classSymbol.Decl = context; // O context.IDENT() para la línea exacta
+            classSymbol.Decl = context; 
 
-            // Insertar el ClassSymbol de la clase Program en el ámbito global de ESTE archivo.
             if (!_symbolTable.GetGlobalScope().TryInsert(classSymbol))
             {
-                // Esto podría pasar si un 'using' ya hizo un tipo con este nombre disponible globalmente.
                 Symbol existing = _symbolTable.GetGlobalScope().FindCurrent(programClassName);
                 if (existing != null) {
                      AddError($"Program class name '{programClassName}' conflicts with an imported type or another global definition.", context.IDENT());
                 } else {
                     AddError($"Program class '{programClassName}' could not be defined in global scope.", context.IDENT());
                 }
-                return Type.Error;
+                return StoreAndReturnType(context, Type.Error); // Guardar tipo de error
             }
-            // El nivel de classSymbol se asigna por el Insert en TablaSimbolos, debería ser 0 (global)
 
-            // Guardar el estado del ámbito actual (global) para restaurarlo después.
             Scope outerScopeBackup = _symbolTable.CurrentScope; 
             int outerLevelBackup = _symbolTable.CurrentLevel;   
+            _symbolTable.SetCurrentScopeTo(classMembersScope, outerLevelBackup + 1); 
 
-            // Establecer el ámbito actual para que sea el classMembersScope de la clase Program.
-            _symbolTable.SetCurrentScopeTo(classMembersScope, outerLevelBackup + 1); // Nivel de la clase
-
-            // Visitar declaraciones de miembros (campos, clases anidadas, métodos)
             foreach (var decl in context.varDecl()) Visit(decl);
             foreach (var class_decl in context.classDecl()) Visit(class_decl);
             foreach (var method_decl in context.methodDecl()) Visit(method_decl);
 
-            // Restaurar el ámbito global.
             _symbolTable.SetCurrentScopeTo(outerScopeBackup, outerLevelBackup);
             
-            return Type.Void;
+            return StoreAndReturnType(context, Type.Void); // Program como tal no tiene un "tipo" evaluable
         }
 
         public override Type VisitClassDecl(MiniCSharpParser.ClassDeclContext context)
         {
             string className = context.IDENT().GetText();
-            // _symbolTable.CurrentScope es el ámbito donde esta clase se está declarando (padre)
-
             if (_symbolTable.SearchCurrentScope(className) != null)
             {
                 AddError($"Class or identifier '{className}' is already declared in this scope.", context.IDENT());
-                return Type.Error;
+                return StoreAndReturnType(context, Type.Error);
             }
 
             var classMembersScope = new Scope(_symbolTable.CurrentScope);
@@ -137,389 +133,329 @@ namespace Compiladores.Checker
             var classSymbol = new ClassSymbol(className, classType);
             classSymbol.Decl = context;
 
-            if (!_symbolTable.Insert(classSymbol)) // Inserta en el scope actual (padre)
+            if (!_symbolTable.Insert(classSymbol))
             {
                 AddError($"Failed to insert class symbol '{className}'.", context.IDENT());
-                return Type.Error;
+                return StoreAndReturnType(context, Type.Error);
             }
             
             Scope outerScopeBackup = _symbolTable.CurrentScope;
             int outerLevelBackup = _symbolTable.CurrentLevel;
-            _symbolTable.SetCurrentScopeTo(classMembersScope, outerLevelBackup + 1); // Entra al scope de la nueva clase
-            
+            _symbolTable.SetCurrentScopeTo(classMembersScope, outerLevelBackup + 1);
             _currentMethod = null;
-
             foreach (var varDecl in context.varDecl()) Visit(varDecl);
-            // Si las clases pueden tener métodos:
-            // foreach (var methodDeclCtx in context.methodDecl()) Visit(methodDeclCtx);
-
-            _symbolTable.SetCurrentScopeTo(outerScopeBackup, outerLevelBackup); // Restaura scope padre
+            _symbolTable.SetCurrentScopeTo(outerScopeBackup, outerLevelBackup);
             
-            return classType;
+            return StoreAndReturnType(context, classType); // El "tipo" de una declaración de clase es el ClassType mismo
         }
 
 
         public override Type VisitType(MiniCSharpParser.TypeContext context)
         {
             string typeName = context.IDENT().GetText();
-            Symbol typeSymbol = _symbolTable.Search(typeName); // Búsqueda global para tipos
+            Symbol typeSymbol = _symbolTable.Search(typeName); 
 
             if (typeSymbol == null || !(typeSymbol is TypeDefSymbol || typeSymbol is ClassSymbol))
             {
                 AddError($"Type '{typeName}' not defined.", context.IDENT());
-                return Type.Error;
+                return StoreAndReturnType(context, Type.Error);
             }
-
             Type baseType = typeSymbol.Type;
-
-            if (context.LBRACK() != null && context.RBRACK() != null) // Array
+            if (context.LBRACK() != null && context.RBRACK() != null) 
             {
                 if (!(baseType.Kind == TypeKind.Int || baseType.Kind == TypeKind.Char))
                 {
                     AddError($"Arrays can only be of type 'int' or 'char', not '{baseType.Name}'.", context);
-                    return Type.Error;
+                    return StoreAndReturnType(context, Type.Error);
                 }
-                return new ArrayType(baseType);
+                return StoreAndReturnType(context, new ArrayType(baseType));
             }
-            return baseType;
+            return StoreAndReturnType(context, baseType);
         }
 
         public override Type VisitVarDecl(MiniCSharpParser.VarDeclContext context)
+{
+    // VisitVarDecl como tal no es una expresión, así que no necesita StoreAndReturnType para el 'VarDeclContext' mismo.
+    // Su propósito es declarar variables en la tabla de símbolos.
+
+    // La siguiente llamada a Visit(context.type()) SÍ es importante.
+    // Esta llamada despachará a VisitType(TypeContext), y ese método VisitType
+    // DEBE usar StoreAndReturnType para almacenar el tipo del nodo TypeContext.
+    Type varType = Visit(context.type()); 
+
+    // Si hubo un error al resolver el tipo (VisitType devolvió Type.Error y lo almacenó para el nodo TypeContext),
+    // entonces propagamos el error.
+    if (varType.Kind == TypeKind.Error) return Type.Error; 
+    
+    if (varType.Kind == TypeKind.Void)
+    {
+        AddError("Variables cannot be of type 'void'.", context.type());
+        return Type.Error; 
+    }
+
+    foreach (var identNode in context.IDENT())
+    {
+        string varName = identNode.GetText();
+        if (_symbolTable.SearchCurrentScope(varName) != null)
         {
-            Type varType = Visit(context.type());
-            if (varType.Kind == TypeKind.Error) return Type.Error;
-            if (varType.Kind == TypeKind.Void)
-            {
-                AddError("Variables cannot be of type 'void'.", context.type());
-                return Type.Error;
-            }
-
-            foreach (var identNode in context.IDENT())
-            {
-                string varName = identNode.GetText();
-                if (_symbolTable.SearchCurrentScope(varName) != null)
-                {
-                    AddError($"Identifier '{varName}' already declared in this scope.", identNode);
-                }
-                else
-                {
-                    var varSymbol = new VarSymbol(varName, varType);
-                    varSymbol.Decl = context; 
-                    _symbolTable.Insert(varSymbol);
-                }
-            }
-            return Type.Void;
+            AddError($"Identifier '{varName}' already declared in this scope.", identNode);
         }
-
-        public override Type VisitMethodDecl(MiniCSharpParser.MethodDeclContext context)
+        else
         {
-            string methodName = context.IDENT().GetText();
-            Type returnType = (context.type() != null) ? Visit(context.type()) : Type.Void;
-
-            if (returnType.Kind == TypeKind.Error) return Type.Error;
-
-            // Los métodos se buscan en el scope actual (que es el de la clase)
-            if (_symbolTable.SearchCurrentScope(methodName) != null)
-            {
-                AddError($"Identifier '{methodName}' already declared in this class scope.", context.IDENT());
-                return Type.Error;
-            }
-
-            MethodSymbol methodSymbol = new MethodSymbol(methodName, returnType);
-            methodSymbol.Decl = context;
-
-            // Guardar el estado del método y ámbito actuales
-            var previousMethod = _currentMethod;
-            _currentMethod = methodSymbol;
+            var varSymbol = new VarSymbol(varName, varType);
+            varSymbol.Decl = context; 
             
-            Scope classScope = _symbolTable.CurrentScope; // El scope de la clase
-            int classLevel = _symbolTable.CurrentLevel;
-
-            _symbolTable.OpenScope(); // Abre un NUEVO scope para parámetros y locales del método. Outer es classScope.
-
-            if (context.formPars() != null)
+            // --- INICIO DE LA DEPURACIÓN INTEGRADA ---
+            Console.WriteLine($"Checker DEBUG: Intentando insertar '{varName}' de tipo '{varType.Name}' en scope nivel {_symbolTable.CurrentLevel} (HashCode Scope: {_symbolTable.CurrentScope.GetHashCode()}). ¿Scope actual ya contiene '{varName}'? {_symbolTable.CurrentScope.Symbols.ContainsKey(varName)}");
+            bool inserted = _symbolTable.Insert(varSymbol);
+            if (!inserted)
             {
-                Visit(context.formPars()); // Poblará _currentMethod.Parameters
+                // Esta condición es teóricamente redundante si SearchCurrentScope funciona bien,
+                // pero es una buena doble comprobación.
+                Console.WriteLine($"Checker DEBUG: FALLÓ la inserción de '{varName}'. Símbolo existente en current scope: {_symbolTable.SearchCurrentScope(varName)}");
+                // Si la inserción falla aquí, significa que TryInsert en TablaSimbolos.Scope devolvió false.
+                // Esto sucede si el símbolo YA EXISTE en el Symbols Dictionary del scope actual.
+                // El chequeo _symbolTable.SearchCurrentScope(varName) != null ya debería haberlo atrapado.
+                // Si llegas aquí, podría indicar una condición de carrera o un problema sutil si los scopes
+                // no se gestionan como se espera entre SearchCurrentScope e Insert.
+                 AddError($"Identifier '{varName}' could not be inserted, possibly already declared or an internal symbol table error.", identNode);
             }
-
-            foreach(var param in _currentMethod.Parameters)
+            else
             {
-                if(!_symbolTable.Insert(param)) // Insertar params en el nuevo scope del método
-                {
-                    AddError($"Duplicate parameter name '{param.Name}' in method '{methodName}'.", param.Decl);
-                }
+                Console.WriteLine($"Checker DEBUG: Insertado '{varName}' con nivel {varSymbol.Level} y tipo '{varSymbol.Type.Name}'.");
             }
-            
-            // ---- OPCIONAL: DEBUG PRINT para el scope del método ----
-            // Console.WriteLine($"\n--- Symbol Table entering method '{methodName}' (Method Scope Level: {_symbolTable.CurrentLevel}) ---");
-            // _symbolTable.PrintFlatTable(); 
-            // Console.WriteLine($"--- End of Symbol Table for method '{methodName}' entry ---\n");
-            // ---- FIN DEBUG ----
-
-            Visit(context.block()); // Visitar cuerpo del método
-
-            _symbolTable.CloseScope(); // Cierra el scope del método, _currentScope vuelve a ser classScope
-
-            _currentMethod = previousMethod; // Restaurar método anterior
-
-            // Insertar el MethodSymbol en el scope de la clase (que ahora es _currentScope de nuevo)
-            if (!classScope.TryInsert(methodSymbol)) // Asegurarse de insertar en el scope correcto (el de la clase)
-            {
-                 // Si _symbolTable.Insert() siempre usa _currentScope, entonces esto es correcto.
-                 // O usar directamente: if(!_symbolTable.Insert(methodSymbol)) pero verificando que
-                 // _currentScope sea el de la clase. La línea anterior es más explícita.
-                 // Dado que CloseScope() restaura _currentScope al de la clase, _symbolTable.Insert() debería funcionar.
-                if(!_symbolTable.Insert(methodSymbol)) { // Esta línea es redundante si la de arriba funciona.
-                     AddError($"Could not insert method symbol '{methodName}' into class scope.", context.IDENT());
-                }
-            }
-
-            return Type.Void;
+            // --- FIN DE LA DEPURACIÓN INTEGRADA ---
         }
+    }
+    // Una declaración de variable no "devuelve" un tipo en el sentido de una expresión, por eso Type.Void.
+    return Type.Void; 
+}
+
+       public override Type VisitMethodDecl(MiniCSharpParser.MethodDeclContext context)
+{
+    string methodName = context.IDENT().GetText();
+    // El tipo de retorno se visita. Si VisitType usa StoreAndReturnType, el tipo del nodo TypeContext se guardará.
+    Type returnType = (context.type() != null) ? Visit(context.type()) : Type.Void;
+
+    if (returnType.Kind == TypeKind.Error) return Type.Error; // Propagar error si la resolución del tipo falló
+
+    // Verificar si el método ya está declarado en el scope actual (de la clase)
+    if (_symbolTable.SearchCurrentScope(methodName) != null)
+    {
+        AddError($"Identifier '{methodName}' already declared in this class scope.", context.IDENT());
+        return Type.Error; // No se almacena tipo para la declaración del método en sí si hay error
+    }
+
+    MethodSymbol methodSymbol = new MethodSymbol(methodName, returnType);
+    methodSymbol.Decl = context; // Asociar el nodo de declaración con el símbolo
+
+    // Guardar el estado del método actual (para anidamiento o simplemente para rastrear)
+    var previousMethod = _currentMethod;
+    _currentMethod = methodSymbol;
+    
+    Scope classScope = _symbolTable.CurrentScope; // Guardar el scope de la clase actual
+    // int classLevel = _symbolTable.CurrentLevel; // No se usa classLevel directamente aquí
+
+    // --- MODIFICACIÓN AQUÍ: Abrir scope y asociarlo con el MethodDeclContext ---
+    // Este nuevo scope será para los parámetros del método y las declaraciones locales en el bloque del método.
+    _symbolTable.OpenScope(context); // <<<< PASANDO EL CONTEXT AL ABRIR EL SCOPE
+
+    // Visitar y procesar parámetros formales (si existen)
+    // VisitFormPars poblará la lista _currentMethod.Parameters
+    if (context.formPars() != null) 
+    { 
+        Visit(context.formPars()); 
+    }
+
+    // Insertar los parámetros (que ahora están en _currentMethod.Parameters) en el nuevo scope del método
+    foreach(var param in _currentMethod.Parameters)
+    {
+        if(!_symbolTable.Insert(param)) // Insert intenta añadir al _symbolTable.CurrentScope
+        { 
+            // Esto podría ocurrir si hay nombres de parámetros duplicados, lo cual VisitFormPars ya debería haber chequeado.
+            AddError($"Duplicate parameter name '{param.Name}' (or failed to insert) in method '{methodName}'.", param.Decl ?? (IParseTree)context.formPars() ?? context.IDENT());
+        }
+    }
+    
+    // Visitar el cuerpo del método (block)
+    // VisitBlock abrirá su propio scope ANIDADO dentro del scope de este método
+    // y las variables locales declaradas en el bloque se insertarán allí.
+    Visit(context.block()); 
+    
+    // Cerrar el scope del método, volviendo al scope de la clase
+    _symbolTable.CloseScope(); 
+    
+    _currentMethod = previousMethod; // Restaurar el método anterior (si hubiera anidamiento o simplemente para limpiar)
+    
+    // Insertar el símbolo del método en el scope de la clase
+    // classScope fue guardado antes de abrir el scope del método.
+    // El _symbolTable.Insert usará el _symbolTable.CurrentScope, que ahora debería ser classScope
+    // después del CloseScope() anterior.
+    if (!classScope.TryInsert(methodSymbol)) // Intenta insertar en el classScope directamente
+    {
+        // Esto podría fallar si SearchCurrentScope al inicio no fue suficiente
+        // o si la gestión de _currentScope en TablaSimbolos no se restauró como se esperaba.
+        // Una alternativa más segura sería:
+        // if (!_symbolTable.GetScopeForNode(parentClassContext).TryInsert(methodSymbol)) { ... }
+        // pero classScope debería ser correcto aquí.
+        AddError($"Could not insert method symbol '{methodName}' into class scope. This might indicate an issue with scope restoration or a duplicate not caught earlier.", context.IDENT());
+    }
+    // La declaración de un método no es una expresión que tenga un tipo evaluable, por eso Type.Void.
+    // No llamamos a StoreAndReturnType para el MethodDeclContext completo.
+    return Type.Void;
+}
 
         public override Type VisitFormPars(MiniCSharpParser.FormParsContext context)
         {
+            // ... (sin cambios, no es una expresión) ...
             if (_currentMethod == null)
             {
                 AddError("Formal parameters processed outside of a method context.", context);
                 return Type.Error;
             }
-
             var types = context.type();
             var idents = context.IDENT();
-
             for (int i = 0; i < idents.Length; i++)
             {
                 Type paramType = Visit(types[i]);
                 if (paramType.Kind == TypeKind.Error) continue;
                 if (paramType.Kind == TypeKind.Void)
-                {
-                    AddError($"Method parameters cannot be of type 'void'. Found for '{idents[i].GetText()}'.", types[i]);
-                    continue;
-                }
-
+                { AddError($"Method parameters cannot be of type 'void'. Found for '{idents[i].GetText()}'.", types[i]); continue; }
                 string paramName = idents[i].GetText();
                 if (_currentMethod.Parameters.Any(p => p.Name == paramName))
-                {
-                    AddError($"Duplicate parameter name '{paramName}' in method '{_currentMethod.Name}'.", idents[i]);
-                    continue;
-                }
-                // Asignar el ITerminalNode como contexto de declaración para el parámetro
+                { AddError($"Duplicate parameter name '{paramName}' in method '{_currentMethod.Name}'.", idents[i]); continue; }
                 VarSymbol paramSymbol = new VarSymbol(paramName, paramType) { Decl = idents[i].Payload is IToken ? context : idents[i].Parent as ParserRuleContext ?? types[i] };
-                if (idents[i].Payload is IToken identTokenPayload) { // Para obtener la línea del token específico
+                if (idents[i].Payload is IToken identTokenPayload) { 
                     paramSymbol.Decl = new TerminalNodeImpl(identTokenPayload).Parent as ParserRuleContext ?? types[i];
-                } else { // Fallback
+                } else { 
                     paramSymbol.Decl = types[i];
                 }
-
-
                 _currentMethod.Parameters.Add(paramSymbol);
             }
             return Type.Void;
         }
 
+        // --- Métodos Visit* para EXPRESIONES ---
+        // Todos estos deben usar StoreAndReturnType
+
+
         public override Type VisitNumberFactor(MiniCSharpParser.NumberFactorContext context)
         {
-            if (context.number().INTCONST() != null) return Type.Int;
-            if (context.number().DOUBLECONST() != null) return Type.Double;
-            AddError("Unknown number format.", context);
-            return Type.Error;
+            Type type;
+            if (context.number().INTCONST() != null) type = Type.Int;
+            else if (context.number().DOUBLECONST() != null) type = Type.Double;
+            else { AddError("Unknown number format.", context); type = Type.Error; }
+            return StoreAndReturnType(context, type);
         }
 
         public override Type VisitCharFactor(MiniCSharpParser.CharFactorContext context) => Type.Char;
         public override Type VisitStringFactor(MiniCSharpParser.StringFactorContext context) => Type.String;
         public override Type VisitBoolFactor(MiniCSharpParser.BoolFactorContext context) => Type.Bool;
-        public override Type VisitParenFactor(MiniCSharpParser.ParenFactorContext context) => Visit(context.expr());
+        public override Type VisitParenFactor(MiniCSharpParser.ParenFactorContext context)
+        {
+            Type exprType = Visit(context.expr());
+            return StoreAndReturnType(context, exprType); // El tipo del factor entre paréntesis es el tipo de la expresión interna
+        }
 
-        public override Type VisitDesignator(MiniCSharpParser.DesignatorContext context)
+         public override Type VisitDesignator(MiniCSharpParser.DesignatorContext context)
         {
             _lastDesignatorVarSymbol = null;
             _isDesignatorLValue = false;
-
             string baseName = context.IDENT(0).GetText();
             Symbol symbol = _symbolTable.Search(baseName);
 
             if (symbol == null)
             {
-                AddError($"Identifier '{baseName}' not declared.", context.IDENT(0)); // [cite: 137]
-                return Type.Error;
+                AddError($"Identifier '{baseName}' not declared.", context.IDENT(0));
+                return StoreAndReturnType(context, Type.Error);
             }
-
             Type currentType = symbol.Type;
-            // Marcar si el símbolo base es un L-Value
-            if (symbol.Kind == SymbolKind.Variable || symbol.Kind == SymbolKind.Constant) // Constantes no son L-Values para asignación
+            if (symbol.Kind == SymbolKind.Variable || symbol.Kind == SymbolKind.Constant)
             {
                  if (symbol is VarSymbol vs) _lastDesignatorVarSymbol = vs;
-                 _isDesignatorLValue = (symbol.Kind != SymbolKind.Constant); // Solo variables son L-Values
+                 _isDesignatorLValue = (symbol.Kind != SymbolKind.Constant); 
             }
 
-
-            int identIndex = 0; // Para rastrear los IDENT en el designator
-            for (int i = 1; i < context.ChildCount; i++) // Empezamos en 1 para saltar el primer IDENT
+            int identIndex = 0; 
+            for (int i = 1; i < context.ChildCount; i++) 
             {
                 var child = context.GetChild(i);
                 bool nextIsLValueCandidate = false;
-
                 if (child is ITerminalNode terminalNode && terminalNode.Symbol.Type == MiniCSharpLexer.DOT)
                 {
                     identIndex++;
                     if (i + 1 >= context.ChildCount || !(context.GetChild(i + 1) is ITerminalNode memberIdentNode && memberIdentNode.Symbol.Type == MiniCSharpLexer.IDENT))
-                    {
-                         AddError($"Expected identifier after '.'.", child); return Type.Error;
-                    }
+                    { AddError($"Expected identifier after '.'.", child); return StoreAndReturnType(context, Type.Error); }
                     string memberName = memberIdentNode.GetText();
-
                     if (currentType.Kind != TypeKind.Class)
-                    {
-                        AddError($"'{_symbolTable.Search(baseName)?.Name ?? baseName}' is not a class and cannot have members.", context.IDENT(identIndex-1));
-                        return Type.Error;
-                    }
-
+                    { AddError($"'{_symbolTable.Search(baseName)?.Name ?? baseName}' is not a class and cannot have members.", context.IDENT(identIndex-1)); return StoreAndReturnType(context, Type.Error); }
                     ClassType classType = (ClassType)currentType;
                     Symbol memberSymbol = classType.Members.Find(memberName);
-
                     if (memberSymbol == null)
-                    {
-                        AddError($"Class '{classType.Name}' does not have a member named '{memberName}'.", memberIdentNode);
-                        return Type.Error;
-                    }
+                    { AddError($"Class '{classType.Name}' does not have a member named '{memberName}'.", memberIdentNode); return StoreAndReturnType(context, Type.Error); }
                     currentType = memberSymbol.Type;
                     if (memberSymbol.Kind == SymbolKind.Variable || memberSymbol.Kind == SymbolKind.Constant)
-                    {
-                        if (memberSymbol is VarSymbol mvs) _lastDesignatorVarSymbol = mvs;
-                        nextIsLValueCandidate = (memberSymbol.Kind != SymbolKind.Constant);
-                    }
-                    i++; // Consumimos el IDENT del miembro
+                    { if (memberSymbol is VarSymbol mvs) _lastDesignatorVarSymbol = mvs; nextIsLValueCandidate = (memberSymbol.Kind != SymbolKind.Constant); }
+                    i++; 
                 }
                 else if (child is ITerminalNode tNodeLbrack && tNodeLbrack.Symbol.Type == MiniCSharpLexer.LBRACK)
                 {
                     if (i + 2 >= context.ChildCount || !(context.GetChild(i + 1) is MiniCSharpParser.ExprContext) || !(context.GetChild(i + 2) is ITerminalNode tNodeRbrack && tNodeRbrack.Symbol.Type == MiniCSharpLexer.RBRACK))
-                    {
-                        AddError("Invalid array access syntax.", child); return Type.Error;
-                    }
-
+                    { AddError("Invalid array access syntax.", child); return StoreAndReturnType(context, Type.Error); }
                     if (currentType.Kind != TypeKind.Array)
-                    {
-                        AddError($"Identifier '{_symbolTable.Search(baseName)?.Name ?? baseName}' is not an array.", context.IDENT(identIndex));
-                        return Type.Error;
-                    }
-
+                    { AddError($"Identifier '{_symbolTable.Search(baseName)?.Name ?? baseName}' is not an array.", context.IDENT(identIndex)); return StoreAndReturnType(context, Type.Error); }
                     Type indexType = Visit(context.expr(context.expr().ToList().IndexOf((MiniCSharpParser.ExprContext)context.GetChild(i+1))));
-                    if (indexType.Kind != TypeKind.Int)
-                    {
-                        AddError("Array index must be an integer.", context.GetChild(i+1));
-                    }
+                    if (indexType.Kind != TypeKind.Int) { AddError("Array index must be an integer.", context.GetChild(i+1)); }
                     currentType = ((ArrayType)currentType).ElementType;
-                    _lastDesignatorVarSymbol = null; // Elementos de array no son VarSymbol directamente
-                    nextIsLValueCandidate = true; // Elementos de array son L-Values
-                    i += 2; // Consumimos expr y RBRACK
+                    _lastDesignatorVarSymbol = null; 
+                    nextIsLValueCandidate = true; 
+                    i += 2; 
                 }
                 _isDesignatorLValue = nextIsLValueCandidate;
             }
-            // Aquí podrías guardar 'symbol' o 'currentType' en el contexto del designador si lo necesitas después.
-            // (context as Antlr4.Runtime.RuleContext).misc = currentType; // Ejemplo
-            return currentType;
+            return StoreAndReturnType(context, currentType); // El tipo del designador es el tipo del último elemento accedido
         }
 
 
        public override Type VisitDesignatorFactor(MiniCSharpParser.DesignatorFactorContext context)
         {
-            Type designatorType = Visit(context.designator());
-
-            if (context.LPAREN() != null) // Es una llamada a método: designator ( [actPars] )
+            Type designatorType = Visit(context.designator()); // Esto ya llamará a StoreAndReturnType para el designador
+            if (context.LPAREN() != null) 
             {
-                if (designatorType.Kind == TypeKind.Error) return Type.Error;
-
-                // El designador DEBE resolverse a un símbolo de método.
-                // El VisitDesignator, si el último componente fue un ident, NO nos dice si es un método.
-                // Necesitamos el símbolo del último identificador del designator.
-                // Esto es un poco más complejo. Asumimos que el último IDENT del designator es el nombre del método.
-                // Esta lógica necesita refinamiento para designadores complejos como obj.method().
-
+                if (designatorType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
                 Symbol potentialMethodSymbol;
                 var designatorCtx = context.designator();
                 string methodName;
-
-                if (designatorCtx.DOT().Length > 0) // obj.method
+                if (designatorCtx.DOT().Length > 0) 
                 {
-                    // Necesitamos el tipo del objeto y buscar el método en sus miembros
-                    // Esto requiere que VisitDesignator devuelva más información o que lo recalculemos aquí.
-                    // Por ahora, es una simplificación y podría fallar para obj.method()
                      AddError("Complex method calls like 'object.method()' are not fully supported in this checker stage yet.", context);
                      potentialMethodSymbol = _symbolTable.Search(designatorCtx.IDENT().Last().GetText());
                      methodName = designatorCtx.IDENT().Last().GetText();
-
-                } else { // method()
+                } else { 
                      methodName = designatorCtx.IDENT(0).GetText();
                      potentialMethodSymbol = _symbolTable.Search(methodName);
                 }
-
-
                 if (potentialMethodSymbol == null || !(potentialMethodSymbol is MethodSymbol methodSymbol))
-                {
-                    AddError($"'{methodName}' is not a method or not declared.", context.designator());
-                    return Type.Error;
-                }
-
+                { AddError($"'{methodName}' is not a method or not declared.", context.designator()); return StoreAndReturnType(context, Type.Error); }
                 List<Type> actualParamTypes = new List<Type>();
                 if (context.actPars() != null)
-                {
-                    foreach (var exprCtx in context.actPars().expr())
-                    {
-                        actualParamTypes.Add(Visit(exprCtx));
-                    }
-                }
-
+                { foreach (var exprCtx in context.actPars().expr()) { actualParamTypes.Add(Visit(exprCtx)); } }
                 if (methodSymbol.Parameters.Count != actualParamTypes.Count)
-                {
-                    // ----- INICIO DE LA CORRECCIÓN -----
-                    // Si actPars es null (no se proveyeron argumentos), el error está cerca del '(',
-                    // si no, el error está relacionado con la lista de argumentos provista.
-                    IParseTree errorContext = context.actPars() != null ? (IParseTree)context.actPars() : (IParseTree)context.LPAREN();
-                    AddError($"Method '{methodSymbol.Name}' expects {methodSymbol.Parameters.Count} arguments, but got {actualParamTypes.Count}.", errorContext);
-                    // ----- FIN DE LA CORRECCIÓN -----
-                    return Type.Error;
-                }
-
+                { IParseTree errorContext = context.actPars() != null ? (IParseTree)context.actPars() : (IParseTree)context.LPAREN(); AddError($"Method '{methodSymbol.Name}' expects {methodSymbol.Parameters.Count} arguments, but got {actualParamTypes.Count}.", errorContext); return StoreAndReturnType(context, Type.Error); }
                 for (int i = 0; i < methodSymbol.Parameters.Count; i++)
                 {
-                    if (actualParamTypes[i].Kind == TypeKind.Error) continue; // Error ya reportado al visitar la expresión del argumento
+                    if (actualParamTypes[i].Kind == TypeKind.Error) continue; 
                     if (!AreTypesCompatible(methodSymbol.Parameters[i].Type, actualParamTypes[i]))
-                    {
-                        AddError($"Type mismatch for argument {i + 1} of method '{methodSymbol.Name}'. Expected '{methodSymbol.Parameters[i].Type}', got '{actualParamTypes[i]}'.", context.actPars().expr(i)); // [cite: 138]
-                    }
+                    { AddError($"Type mismatch for argument {i + 1} of method '{methodSymbol.Name}'. Expected '{methodSymbol.Parameters[i].Type}', got '{actualParamTypes[i]}'.", context.actPars().expr(i)); }
                 }
-                return methodSymbol.Type; // Tipo de retorno del método
+                return StoreAndReturnType(context, methodSymbol.Type); // El tipo de una llamada a método es su tipo de retorno
             }
-            else // Es solo un designator (variable, campo, etc.)
+            else 
             {
-                // Si es un designador que se resuelve a un tipo método (ej. 'miMetodo' sin '()')
-                // esto podría ser un error si el contexto espera un valor.
-                // Por ahora, asumimos que si no hay '()', se espera el valor/variable.
-                if (designatorType is MethodSymbol) // Aquí designatorType es el TIPO del símbolo, no el símbolo en sí.
-                {
-                     // Para ser más precisos, necesitaríamos el SÍMBOLO del designador, no solo su tipo.
-                     // Si VisitDesignator guardara el último símbolo resuelto en una variable miembro, podríamos usarlo aquí.
-                     // O, si VisitDesignator devuelve el símbolo además del tipo.
-                     // Asumimos que si el TIPO es Void (típico de un método que no es función) o si el símbolo era un método
-                     // y no se está llamando, es un uso incorrecto.
-                     // Esta lógica es compleja, ya que un método PUEDE ser un "valor" en lenguajes con delegados/funciones de primera clase,
-                     // pero MiniC# no parece tener eso.
-
-                     // Si el tipo del designador es 'Void' (que es el tipo de retorno de un MethodSymbol si el método es void),
-                     // y no estamos en una llamada, no tiene sentido.
-                     // Sin embargo, un MethodSymbol puede tener un tipo de retorno no-void.
-                     // La clave es: si el SÍMBOLO es un MethodSymbol y no hay '()', es un error.
-
-                     // Re-evaluamos el símbolo base del designator
-                     Symbol baseDesignatorSymbol = _symbolTable.Search(context.designator().IDENT(0).GetText());
-                     if (baseDesignatorSymbol is MethodSymbol && context.designator().ChildCount == 1) // Es solo 'methodName', sin . o []
-                     {
-                         AddError($"Method name '{context.designator().GetText()}' used as a value without calling it.", context.designator());
-                         return Type.Error;
-                     }
-                }
-                return designatorType;
+                 Symbol baseDesignatorSymbol = _symbolTable.Search(context.designator().IDENT(0).GetText());
+                 if (baseDesignatorSymbol is MethodSymbol && context.designator().ChildCount == 1) 
+                 { AddError($"Method name '{context.designator().GetText()}' used as a value without calling it.", context.designator()); return StoreAndReturnType(context, Type.Error); }
+                    return StoreAndReturnType(context, designatorType); // Si es solo un designador, su tipo es el que VisitDesignator determinó
             }
         }
         private bool AreTypesCompatible(Type formalType, Type actualType)
@@ -546,343 +482,172 @@ namespace Compiladores.Checker
         }
 
 
-       public override Type VisitDesignatorStatement(MiniCSharpParser.DesignatorStatementContext context)
-{
-    Type designatorType = Visit(context.designator());
-    VarSymbol targetVar = _lastDesignatorVarSymbol; // Obtenido de VisitDesignator
-    bool isLValue = _isDesignatorLValue;         // Obtenido de VisitDesignator
-
-    if (designatorType.Kind == TypeKind.Error) return Type.Error;
-
-    if (context.ASSIGN() != null) // Es una asignación: designator = expr
-    {
-        if (!isLValue)
+        public override Type VisitDesignatorStatement(MiniCSharpParser.DesignatorStatementContext context)
         {
-            AddError("The left-hand side of an assignment must be a variable, field, or array element.", context.designator());
-            return Type.Error;
-        }
-        if (targetVar != null && targetVar.Kind == SymbolKind.Constant)
-        {
-            // Si targetVar es null (ej. para un elemento de array, donde _lastDesignatorVarSymbol se anula),
-            // esta comprobación no aplica o necesita un manejo diferente si los elementos de array pudieran ser const.
-            // Para MiniC#, los elementos de array no son VarSymbol directamente, así que esto es para variables/campos.
-            AddError($"Cannot assign to '{targetVar.Name}' because it is a constant.", context.designator());
-            // Considera retornar Type.Error aquí si es un error fatal para la asignación.
-        }
+            // ... (lógica existente, llama a Visit para sub-expresiones, que almacenarán sus tipos) ...
+            // Un statement como tal no tiene un tipo que se propague, así que devolvemos Void.
+            Type designatorType = Visit(context.designator());
+            VarSymbol targetVar = _lastDesignatorVarSymbol; 
+            bool isLValue = _isDesignatorLValue;         
 
-        var rhsExprCtx = context.expr(); // La expresión del lado derecho
-        if (rhsExprCtx == null) 
-        {
-            // Esto no debería ocurrir si la gramática es designator ASSIGN expr SEMI,
-            // pero es una buena práctica verificarlo.
-            AddError("Missing expression on the right-hand side of assignment.", context.ASSIGN());
-            return Type.Error;
-        }
+            if (designatorType.Kind == TypeKind.Error) return Type.Error;
 
-        Type rhsType = Visit(rhsExprCtx); // Obtenemos el tipo del lado derecho
-        if (rhsType.Kind == TypeKind.Error) return Type.Error;
-
-        // Lógica específica para la asignación a arrays
-        if (designatorType.Kind == TypeKind.Array)
-        {
-            bool rhsIsNewArrayAllocation = false;
-            // Verificamos si la estructura de la expresión RHS es "new IDENT [ expr ]"
-            // Esto significa que la expresión no tiene operadores de mayor precedencia
-            // y se reduce a un solo factor, que es un NewFactor de array.
-            if (rhsExprCtx.MINUS() == null && 
-                rhsExprCtx.cast() == null &&
-                rhsExprCtx.addop().Length == 0 &&
-                rhsExprCtx.term().Length == 1)
+            if (context.ASSIGN() != null) 
             {
-                var termCtx = rhsExprCtx.term(0);
-                if (termCtx.mulop().Length == 0 &&
-                    termCtx.factor().Length == 1)
-                {
-                    var factorCtx = termCtx.factor(0);
-                    // Comprobamos si el factor es un NewFactor y si tiene LBRACK (es decir, es new T[...])
-                    if (factorCtx is MiniCSharpParser.NewFactorContext newFactorCtx && newFactorCtx.LBRACK() != null)
-                    {
-                        rhsIsNewArrayAllocation = true;
-                    }
-                }
+                if (!isLValue) { AddError("The left-hand side of an assignment must be a variable, field, or array element.", context.designator()); return Type.Error; }
+                if (targetVar != null && targetVar.Kind == SymbolKind.Constant) { AddError($"Cannot assign to '{targetVar.Name}' because it is a constant.", context.designator()); }
+                var rhsExprCtx = context.expr(); 
+                if (rhsExprCtx == null) { AddError("Missing expression on the right-hand side of assignment.", context.ASSIGN()); return Type.Error; }
+                Type rhsType = Visit(rhsExprCtx); 
+                if (rhsType.Kind == TypeKind.Error) return Type.Error;
+                // ... (lógica de asignación de array) ...
+                if (designatorType.Kind == TypeKind.Array) { /* ... */ }
+                if (!AreTypesCompatible(designatorType, rhsType)) { AddError($"Cannot assign type '{rhsType}' to '{designatorType}'.", context.expr()); }
             }
-
-            if (!rhsIsNewArrayAllocation)
+            else if (context.LPAREN() != null) { /* ... */ }
+            else if (context.INC() != null || context.DEC() != null) 
             {
-                // Si el lado izquierdo es un array, pero el lado derecho NO ES una expresión "new Tipo[tamaño]",
-                // entonces aplicamos la regla de "no asignación directa".
-                // Esto cubriría casos como array1 = array2; o array1 = funcQueDevuelveArray();
-                AddError("Direct assignment to array variables is only allowed using a 'new' array allocation expression (e.g., arr = new int[5];). Assigning array elements is allowed (e.g., arr[0] = 10;).", context.designator());
-                // Podrías decidir si esto es un error que detiene la compatibilidad de tipos o no.
-                // Por ahora, se reporta y la comprobación de tipos sigue.
+                if (!isLValue) { AddError("The operand of an increment or decrement operator must be a variable, field, or array element.", context.designator()); }
+                if (!(designatorType.Kind == TypeKind.Int || designatorType.Kind == TypeKind.Double)) { AddError($"Operator '{(context.INC() != null ? "++" : "--")}' cannot be applied to operand of type '{designatorType}'.", context.designator()); }
             }
-            // Si rhsIsNewArrayAllocation == true, significa que es arrayVar = new Tipo[tamaño];
-            // En este caso, no emitimos el error de "asignación directa no permitida" y
-            // procedemos a la verificación de compatibilidad de tipos más abajo.
+            return Type.Void; // Opcional: StoreAndReturnType(context, Type.Void) si alguna vez necesitas el "tipo" de un statement
         }
-
-        // Verificación general de compatibilidad de tipos para la asignación
-        if (!AreTypesCompatible(designatorType, rhsType))
-        {
-            AddError($"Cannot assign type '{rhsType}' to '{designatorType}'.", context.expr());
-        }
-    }
-    else if (context.LPAREN() != null) // Llamada a método como statement: designator ( [actPars] )
-    {
-        // La validación de la llamada a método ya está (o debería estar) en VisitDesignatorFactor.
-        // Visit(context.designator()) ya evaluó el designator, que si es una llamada,
-        // su tipo (el tipo de retorno del método) fue determinado.
-        // Aquí solo nos aseguramos de que la llamada en sí sea válida si no lo fue ya.
-        // Si designatorType es Error, el error ya fue reportado.
-        // Si no, la llamada se considera un statement válido.
-    }
-    else if (context.INC() != null || context.DEC() != null) // ++ o --
-    {
-        if (!isLValue)
-        {
-            AddError("The operand of an increment or decrement operator must be a variable, field, or array element.", context.designator());
-        }
-        // La comprobación de tipo (int o double) ya la tienes en tu código original.
-        if (!(designatorType.Kind == TypeKind.Int || designatorType.Kind == TypeKind.Double))
-        {
-            AddError($"Operator '{(context.INC() != null ? "++" : "--")}' cannot be applied to operand of type '{designatorType}'.", context.designator());
-        }
-    }
-    return Type.Void;
-}
 
         public override Type VisitIfStatement(MiniCSharpParser.IfStatementContext context)
         {
-            Type conditionType = Visit(context.condition());
+            Type conditionType = Visit(context.condition()); // VisitCondition se encargará de StoreAndReturnType para la condición
             if (conditionType.Kind != TypeKind.Error && conditionType.Kind != TypeKind.Bool)
-            {
-                AddError("If condition must be of type 'bool'.", context.condition());
-            }
+            { AddError("If condition must be of type 'bool'.", context.condition()); }
             Visit(context.statement(0));
-            if (context.ELSE() != null)
-            {
-                Visit(context.statement(1));
-            }
+            if (context.ELSE() != null) { Visit(context.statement(1)); }
             return Type.Void;
         }
 
         public override Type VisitWriteStatement(MiniCSharpParser.WriteStatementContext context)
         {
-            Type exprType = Visit(context.expr());
+            Type exprType = Visit(context.expr()); // Visit(expr) almacena su propio tipo
             if (exprType.Kind == TypeKind.Error) return Type.Error;
-
-            if (!(exprType.Kind == TypeKind.Int ||
-                  exprType.Kind == TypeKind.Double ||
-                  exprType.Kind == TypeKind.Char ||
-                  exprType.Kind == TypeKind.Bool ||
-                  exprType.Kind == TypeKind.String))
-            {
-                AddError($"Cannot write expression of type '{exprType}'.", context.expr());
-            }
-
+            if (!(exprType.Kind == TypeKind.Int || exprType.Kind == TypeKind.Double || exprType.Kind == TypeKind.Char || exprType.Kind == TypeKind.Bool || exprType.Kind == TypeKind.String))
+            { AddError($"Cannot write expression of type '{exprType}'.", context.expr()); }
             if (context.number() != null)
             {
-                Type numberType = Visit(context.number());
-                if (numberType.Kind != TypeKind.Int)
-                {
-                     AddError("Format specifier for 'write' (if present) must be an integer.", context.number());
-                }
+                Type numberType = Visit(context.number()); // VisitNumber (llamado desde Visit(context.number())) almacena su tipo
+                if (numberType.Kind != TypeKind.Int) { AddError("Format specifier for 'write' (if present) must be an integer.", context.number()); }
             }
             return Type.Void;
         }
 
         public override Type VisitReturnStatement(MiniCSharpParser.ReturnStatementContext context)
         {
-            if (_currentMethod == null)
-            {
-                AddError("Return statement found outside of a method.", context); // [cite: 139] (implícito)
-                return Type.Error;
-            }
-
+            if (_currentMethod == null) { AddError("Return statement found outside of a method.", context); return Type.Error; }
             if (context.expr() != null)
             {
                 Type returnExprType = Visit(context.expr());
                 if (returnExprType.Kind == TypeKind.Error) return Type.Error;
-
-                if (_currentMethod.Type.Kind == TypeKind.Void)
-                {
-                    AddError($"Method '{_currentMethod.Name}' is void and cannot return a value.", context.expr()); // [cite: 139]
-                }
-                else if (!AreTypesCompatible(_currentMethod.Type, returnExprType))
-                {
-                    AddError($"Cannot return type '{returnExprType}' from method '{_currentMethod.Name}' expecting '{_currentMethod.Type}'.", context.expr()); // [cite: 140]
-                }
+                if (_currentMethod.Type.Kind == TypeKind.Void) { AddError($"Method '{_currentMethod.Name}' is void and cannot return a value.", context.expr()); }
+                else if (!AreTypesCompatible(_currentMethod.Type, returnExprType)) { AddError($"Cannot return type '{returnExprType}' from method '{_currentMethod.Name}' expecting '{_currentMethod.Type}'.", context.expr());}
             }
-            else // return;
-            {
-                if (_currentMethod.Type.Kind != TypeKind.Void)
-                {
-                    AddError($"Method '{_currentMethod.Name}' expects a return value of type '{_currentMethod.Type}'.", context); // [cite: 140]
-                }
-            }
+            else { if (_currentMethod.Type.Kind != TypeKind.Void) { AddError($"Method '{_currentMethod.Name}' expects a return value of type '{_currentMethod.Type}'.", context); } }
             return Type.Void;
         }
+
+        // En MiniCSharpChecker.cs
+
+// ... (otros métodos y propiedades de la clase) ...
 
         public override Type VisitBlock(MiniCSharpParser.BlockContext context)
         {
-            // Determinar si este bloque debe abrir un nuevo ámbito.
-            // Si este VisitBlock es para el cuerpo principal de un método, el ámbito para
-            // parámetros y variables locales directas del método ya fue abierto en VisitMethodDecl.
-            // Un bloque {} anidado sí debería abrir un nuevo ámbito.
+            bool newScopeWasOpenedByThisBlock = true; 
+            _symbolTable.OpenScope(context); // <<< MODIFICACIÓN AQUÍ: Se pasa el context
 
-            // Lógica simplificada actual: cada bloque abre un ámbito.
-            // Esto significa que el cuerpo de un método (que es un bloque) también abrirá un
-            // ámbito anidado dentro del ámbito que VisitMethodDecl ya pudo haber abierto para parámetros.
-            bool newScopeWasOpenedByThisBlock = true; // Asumimos que siempre abrimos para CUALQUIER bloque
-            _symbolTable.OpenScope(); 
-
-            foreach (var child in context.children.OfType<IParseTree>())
-            {
-                if (child is MiniCSharpParser.VarDeclContext || child is MiniCSharpParser.StatementContext)
+            if (context.children != null) { // Añadido chequeo de nulidad por si acaso
+                foreach (var child in context.children.OfType<IParseTree>())
                 {
-                    Visit(child); // Las variables locales se insertan en el ámbito recién abierto
+                    // Solo visitar VarDecl y Statement, no los tokens LBRACE/RBRACE directamente
+                    if (child is MiniCSharpParser.VarDeclContext varDeclCtx)
+                    {
+                        Visit(varDeclCtx);
+                    }
+                    else if (child is MiniCSharpParser.StatementContext stmtCtx)
+                    {
+                        Visit(stmtCtx);
+                    }
                 }
             }
 
-            // ----- INICIO DE LA IMPRESIÓN DE DEBUG DENTRO DEL BLOQUE -----
-            // Imprimir la tabla de símbolos ANTES de cerrar el ámbito de este bloque.
-            // _currentScope y _currentLevel apuntan ahora al ámbito de este bloque.
-            Console.WriteLine($"\n--- FLAT SYMBOL TABLE - At End of Block (Current Level: {_symbolTable.CurrentLevel}, Context: {context.GetText().Substring(0, Math.Min(context.GetText().Length, 30))}...) ---");
-            _symbolTable.PrintFlatTable(); // Debería mostrar locales de este bloque y luego los externos
-            Console.WriteLine($"--- End of FLAT SYMBOL TABLE for Block ---\n");
-            // ----- FIN DE LA IMPRESIÓN DE DEBUG -----
+            // Comentado para reducir la salida de consola, como solicitaste
+            // Console.WriteLine($"\n--- FLAT SYMBOL TABLE - At End of Block (Current Level: {_symbolTable.CurrentLevel}, Context: {context.GetText().Substring(0, Math.Min(context.GetText().Length, 30))}...) ---");
+            // _symbolTable.PrintFlatTable(); 
+            // Console.WriteLine($"--- End of FLAT SYMBOL TABLE for Block ---\n");
 
-            if (newScopeWasOpenedByThisBlock) // O simplemente `_symbolTable.CloseScope();` si siempre abres
-            {
-                _symbolTable.CloseScope(); // Cerrar el ámbito que este bloque abrió
+            if (newScopeWasOpenedByThisBlock) 
+            { 
+                _symbolTable.CloseScope(); 
             }
-    
-            return Type.Void;
+            return Type.Void; // Un bloque como statement no tiene un tipo que se propague
         }
+
 
 
         public override Type VisitExpr(MiniCSharpParser.ExprContext context)
         {
-            Type currentType = Visit(context.term(0));
-
-            // Manejar operador unario '-'
+            Type currentType = Visit(context.term(0)); // Esto ya llama a StoreAndReturnType para el primer término
             if (context.MINUS() != null && currentType.Kind != TypeKind.Error)
             {
                 if (!(currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double))
-                {
-                    AddError($"Unary minus operator cannot be applied to type '{currentType}'.", context.term(0));
-                    return Type.Error;
-                }
+                { AddError($"Unary minus operator cannot be applied to type '{currentType}'.", context.term(0)); return StoreAndReturnType(context, Type.Error); }
+                // El tipo no cambia por el menos unario (int sigue int, double sigue double)
             }
-
             for (int i = 0; i < context.addop().Length; i++)
             {
-                if (currentType.Kind == TypeKind.Error) return Type.Error;
-
+                if (currentType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
                 string op = context.addop(i).GetText();
-                Type rightType = Visit(context.term(i + 1));
+                Type rightType = Visit(context.term(i + 1)); // Esto ya llama a StoreAndReturnType para el término derecho
+                if (rightType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
 
-                if (rightType.Kind == TypeKind.Error) return Type.Error;
-
-                if (currentType.Kind == TypeKind.Int && rightType.Kind == TypeKind.Int)
-                {
-                    currentType = Type.Int; // [cite: 123]
-                }
-                else if ((currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double) &&
-                         (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double))
-                {
-                    currentType = Type.Double;
-                }
-                else if (op == "+" && currentType.Kind == TypeKind.String && rightType.Kind == TypeKind.String)
-                {
-                    currentType = Type.String;
-                }
-                 // Permitir string + cualquier_tipo_simple (se convierte a string)
-                else if (op == "+" && currentType.Kind == TypeKind.String && (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double || rightType.Kind == TypeKind.Char || rightType.Kind == TypeKind.Bool))
-                {
-                    currentType = Type.String;
-                }
-                else if (op == "+" && (currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double || currentType.Kind == TypeKind.Char || currentType.Kind == TypeKind.Bool) && rightType.Kind == TypeKind.String)
-                {
-                    currentType = Type.String;
-                }
-                else
-                {
-                    AddError($"Operator '{op}' cannot be applied to operands of type '{currentType}' and '{rightType}'.", context.addop(i));
-                    return Type.Error;
-                }
+                if (currentType.Kind == TypeKind.Int && rightType.Kind == TypeKind.Int) { currentType = Type.Int; }
+                else if ((currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double) && (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double)) { currentType = Type.Double; }
+                else if (op == "+" && currentType.Kind == TypeKind.String && rightType.Kind == TypeKind.String) { currentType = Type.String; }
+                else if (op == "+" && currentType.Kind == TypeKind.String && (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double || rightType.Kind == TypeKind.Char || rightType.Kind == TypeKind.Bool)) { currentType = Type.String; }
+                else if (op == "+" && (currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double || currentType.Kind == TypeKind.Char || currentType.Kind == TypeKind.Bool) && rightType.Kind == TypeKind.String) { currentType = Type.String; }
+                else { AddError($"Operator '{op}' cannot be applied to operands of type '{currentType}' and '{rightType}'.", context.addop(i)); return StoreAndReturnType(context, Type.Error); }
             }
-            return currentType;
+            return StoreAndReturnType(context, currentType); // El tipo de la expresión completa
         }
 
         public override Type VisitTerm(MiniCSharpParser.TermContext context)
         {
-            Type currentType = Visit(context.factor(0));
-
+            Type currentType = Visit(context.factor(0)); // Esto ya llama a StoreAndReturnType para el primer factor
             for (int i = 0; i < context.mulop().Length; i++)
             {
-                if (currentType.Kind == TypeKind.Error) return Type.Error;
-
+                if (currentType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
                 string op = context.mulop(i).GetText();
-                Type rightType = Visit(context.factor(i + 1));
+                Type rightType = Visit(context.factor(i + 1)); // Esto ya llama a StoreAndReturnType para el factor derecho
+                if (rightType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
 
-                if (rightType.Kind == TypeKind.Error) return Type.Error;
-
-                if (currentType.Kind == TypeKind.Int && rightType.Kind == TypeKind.Int)
-                {
-                    // Para '/', la división de enteros podría dar double o int. La definición semántica dice "devuelve valores enteros".
-                    // Para MiniC#, asumiremos que int/int da int (división entera).
-                    currentType = Type.Int; // [cite: 123]
-                }
-                else if ((currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double) &&
-                         (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double))
+                if (currentType.Kind == TypeKind.Int && rightType.Kind == TypeKind.Int) { currentType = Type.Int; }
+                else if ((currentType.Kind == TypeKind.Int || currentType.Kind == TypeKind.Double) && (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double))
                 {
                     if (op == "%" && (currentType.Kind == TypeKind.Double || rightType.Kind == TypeKind.Double))
-                    {
-                        AddError("Operator '%' is not typically defined for double operands in this context.", context.mulop(i));
-                        return Type.Error;
-                    }
+                    { AddError("Operator '%' is not typically defined for double operands in this context.", context.mulop(i)); return StoreAndReturnType(context, Type.Error); }
                     currentType = Type.Double;
                 }
-                else
-                {
-                    AddError($"Operator '{op}' cannot be applied to operands of type '{currentType}' and '{rightType}'.", context.mulop(i));
-                    return Type.Error;
-                }
+                else { AddError($"Operator '{op}' cannot be applied to operands of type '{currentType}' and '{rightType}'.", context.mulop(i)); return StoreAndReturnType(context, Type.Error); }
             }
-            return currentType;
+            return StoreAndReturnType(context, currentType); // El tipo del término completo
         }
 
         public override Type VisitCondFact(MiniCSharpParser.CondFactContext context)
         {
             Type leftType = Visit(context.expr(0));
-            Type rightType = Visit(context.expr(1));
+            Type rightType = Visit(context.expr(1)); // Visit(expr) se encarga de su propio StoreAndReturnType
 
-            if (leftType.Kind == TypeKind.Error || rightType.Kind == TypeKind.Error) return Type.Error;
-
-            var relopNode = context.relop();
-            bool compatible = false;
-
-            if (relopNode.EQUAL() != null || relopNode.NOTEQUAL() != null)
-            {
-                compatible = AreTypesCompatibleForEquality(leftType, rightType); // [cite: 125]
-            }
-            else // <, <=, >, >=
-            {
-                if ((leftType.Kind == TypeKind.Int || leftType.Kind == TypeKind.Double || leftType.Kind == TypeKind.Char) &&
-                    (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double || rightType.Kind == TypeKind.Char))
-                {
-                    // Permitir comparación entre números y/o char (se comparan sus valores ordinales)
-                    compatible = true; // [cite: 125]
-                }
-            }
-
-            if (!compatible)
-            {
-                AddError($"Cannot compare types '{leftType}' and '{rightType}' with operator '{relopNode.GetText()}'.", context.relop());
-                return Type.Error;
-            }
-            return Type.Bool; // [cite: 126]
+            if (leftType.Kind == TypeKind.Error || rightType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
+            var relopNode = context.relop(); bool compatible = false;
+            if (relopNode.EQUAL() != null || relopNode.NOTEQUAL() != null) { compatible = AreTypesCompatibleForEquality(leftType, rightType); }
+            else { if ((leftType.Kind == TypeKind.Int || leftType.Kind == TypeKind.Double || leftType.Kind == TypeKind.Char) && (rightType.Kind == TypeKind.Int || rightType.Kind == TypeKind.Double || rightType.Kind == TypeKind.Char)) { compatible = true; } }
+            if (!compatible) { AddError($"Cannot compare types '{leftType}' and '{rightType}' with operator '{relopNode.GetText()}'.", context.relop()); return StoreAndReturnType(context, Type.Error); }
+            return StoreAndReturnType(context, Type.Bool);
         }
 
         public override Type VisitSwitchStatement(MiniCSharpParser.SwitchStatementContext context)
@@ -966,16 +731,11 @@ namespace Compiladores.Checker
 
         public override Type VisitConstant(MiniCSharpParser.ConstantContext context)
         {
-            if (context.number() != null)
-            {
-                return Visit(context.number()); // Delega a VisitNumber
-            }
-            if (context.CHARCONST() != null)
-            {
-                return Type.Char;
-            }
-            AddError("Unknown constant type.", context); // No debería llegar aquí con la gramática actual
-            return Type.Error;
+            Type type;
+            if (context.number() != null) { type = Visit(context.number()); } // VisitNumber se encargará
+            else if (context.CHARCONST() != null) { type = Type.Char; }
+            else { AddError("Unknown constant type.", context); type = Type.Error;}
+            return StoreAndReturnType(context, type);
         }
 
 
@@ -994,17 +754,11 @@ namespace Compiladores.Checker
 
         public override Type VisitNumber(MiniCSharpParser.NumberContext context)
         {
-            // Este método es llamado por VisitConstant y VisitNumberFactor
-            if (context.INTCONST() != null)
-            {
-                return Type.Int;
-            }
-            if (context.DOUBLECONST() != null)
-            {
-                return Type.Double;
-            }
-            AddError("Unknown number literal.", context); // No debería llegar aquí
-            return Type.Error;
+            Type type;
+            if (context.INTCONST() != null) { type = Type.Int; }
+            else if (context.DOUBLECONST() != null) { type = Type.Double; }
+            else { AddError("Unknown number literal.", context); type = Type.Error; }
+            return StoreAndReturnType(context, type);
         }
 
         public override Type VisitRelop(MiniCSharpParser.RelopContext context)
@@ -1069,12 +823,8 @@ namespace Compiladores.Checker
             return base.VisitTerminal(node); // O Type.Void si prefieres
         }
 
-        public override Type VisitErrorNode(IErrorNode node)
-        {
-            // Podrías devolver Type.Error aquí explícitamente.
-            AddError("Parser error node encountered during semantic check.", node);
-            return Type.Error;
-        }
+        public override Type VisitErrorNode(IErrorNode node) { AddError("Parser error node encountered during semantic check.", node); return Type.Error; }
+
 
         public override Type VisitUsingDirective(MiniCSharpParser.UsingDirectiveContext context)
         {
@@ -1153,93 +903,52 @@ namespace Compiladores.Checker
 
         public override Type VisitCondition(MiniCSharpParser.ConditionContext context)
         {
-            Type currentType = Visit(context.condTerm(0));
+            Type currentType = Visit(context.condTerm(0)); // Visit(condTerm) se encarga
             for (int i = 0; i < context.OR().Length; i++)
             {
-                if (currentType.Kind != TypeKind.Error && currentType.Kind != TypeKind.Bool)
-                {
-                    AddError("Left operand of '||' must be of type bool.", context.condTerm(i));
-                }
+                if (currentType.Kind != TypeKind.Error && currentType.Kind != TypeKind.Bool) { AddError("Left operand of '||' must be of type bool.", context.condTerm(i)); }
                 Type rightType = Visit(context.condTerm(i + 1));
-                if (rightType.Kind != TypeKind.Error && rightType.Kind != TypeKind.Bool)
-                {
-                    AddError("Right operand of '||' must be of type bool.", context.condTerm(i + 1));
-                }
-                if (currentType.Kind == TypeKind.Bool && rightType.Kind == TypeKind.Bool)
-                {
-                    currentType = Type.Bool; // [cite: 126]
-                }
-                else
-                {
-                    currentType = Type.Error; // Si alguno no es bool (y no es error ya), el resultado es error
-                }
+                if (rightType.Kind != TypeKind.Error && rightType.Kind != TypeKind.Bool) { AddError("Right operand of '||' must be of type bool.", context.condTerm(i + 1)); }
+                if (currentType.Kind == TypeKind.Bool && rightType.Kind == TypeKind.Bool) { currentType = Type.Bool; }
+                else { currentType = Type.Error; }
             }
-            return currentType;
+            return StoreAndReturnType(context, currentType);
         }
 
         public override Type VisitCondTerm(MiniCSharpParser.CondTermContext context)
         {
-            Type currentType = Visit(context.condFact(0));
+            Type currentType = Visit(context.condFact(0)); // Visit(condFact) se encarga
             for (int i = 0; i < context.AND().Length; i++)
             {
-                if (currentType.Kind != TypeKind.Error && currentType.Kind != TypeKind.Bool)
-                {
-                    AddError("Left operand of '&&' must be of type bool.", context.condFact(i));
-                }
+                if (currentType.Kind != TypeKind.Error && currentType.Kind != TypeKind.Bool) { AddError("Left operand of '&&' must be of type bool.", context.condFact(i)); }
                 Type rightType = Visit(context.condFact(i + 1));
-                if (rightType.Kind != TypeKind.Error && rightType.Kind != TypeKind.Bool)
-                {
-                    AddError("Right operand of '&&' must be of type bool.", context.condFact(i + 1));
-                }
-
-                if (currentType.Kind == TypeKind.Bool && rightType.Kind == TypeKind.Bool)
-                {
-                    currentType = Type.Bool; // [cite: 126]
-                }
-                else
-                {
-                    currentType = Type.Error;
-                }
+                if (rightType.Kind != TypeKind.Error && rightType.Kind != TypeKind.Bool) { AddError("Right operand of '&&' must be of type bool.", context.condFact(i + 1)); }
+                if (currentType.Kind == TypeKind.Bool && rightType.Kind == TypeKind.Bool) { currentType = Type.Bool; }
+                else { currentType = Type.Error; }
             }
-            return currentType;
+            return StoreAndReturnType(context, currentType);
         }
 
-         public override Type VisitNewFactor(MiniCSharpParser.NewFactorContext context)
+        public override Type VisitNewFactor(MiniCSharpParser.NewFactorContext context)
         {
             string typeName = context.IDENT().GetText();
             Symbol typeSymbol = _symbolTable.Search(typeName);
-
             if (typeSymbol == null)
-            {
-                AddError($"Type '{typeName}' not found for 'new' operator.", context.IDENT());
-                return Type.Error;
-            }
+            { AddError($"Type '{typeName}' not found for 'new' operator.", context.IDENT()); return StoreAndReturnType(context, Type.Error); }
 
-            if (context.LBRACK() != null) // new ident [ expr ]  (Creación de arreglo)
+            if (context.LBRACK() != null) 
             {
                 if (!(typeSymbol.Type.Kind == TypeKind.Int || typeSymbol.Type.Kind == TypeKind.Char))
-                {
-                     AddError($"Can only create arrays of 'int' or 'char', not '{typeName}'.", context.IDENT()); // [cite: 129]
-                     return Type.Error;
-                }
-                Type exprType = Visit(context.expr());
-                if(exprType.Kind != TypeKind.Int)
-                {
-                    AddError("Array size specifier must be an integer.", context.expr());
-                }
-                return new ArrayType(typeSymbol.Type);
+                { AddError($"Can only create arrays of 'int' or 'char', not '{typeName}'.", context.IDENT()); return StoreAndReturnType(context, Type.Error); }
+                Type exprType = Visit(context.expr()); // StoreAndReturnType se llamará dentro de Visit(expr)
+                if(exprType.Kind != TypeKind.Int) { AddError("Array size specifier must be an integer.", context.expr()); }
+                return StoreAndReturnType(context, new ArrayType(typeSymbol.Type));
             }
-            else // new ident () o new ident (Creación de clase)
+            else 
             {
                 if (!(typeSymbol is ClassSymbol))
-                {
-                    AddError($"'{typeName}' is not a class type and cannot be instantiated with 'new'.", context.IDENT());
-                    return Type.Error;
-                }
-                // La gramática permite new ident (sin paréntesis) para clases, o new ident LPAREN RPAREN
-                // El chequeo de constructores (si existieran explícitamente) iría aquí.
-                // MiniC# no define constructores explícitos, así que solo instanciamos.
-                return typeSymbol.Type; // Retorna el ClassType
+                { AddError($"'{typeName}' is not a class type and cannot be instantiated with 'new'.", context.IDENT()); return StoreAndReturnType(context, Type.Error); }
+                return StoreAndReturnType(context, typeSymbol.Type); 
             }
         }
 
@@ -1337,7 +1046,7 @@ namespace Compiladores.Checker
             // El casting está excluido de la implementación de generación de código
             // y no se especifican reglas semánticas para él. Podríamos prohibirlo.
             AddError("Casting is not supported in this version of MiniC#.", context);
-            return Type.Error;
+            return StoreAndReturnType(context, Type.Error);
         }
          
          

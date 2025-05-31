@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from /Volumes/macOs/rooseveltalej/Documents/Compiladores/MiniCSharpParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/Bayron/RiderProjects/compiladores/MiniCSharpParser.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -144,16 +144,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_program; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterProgram(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitProgram(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitProgram(this);
@@ -248,16 +238,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_usingDirective; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterUsingDirective(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitUsingDirective(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitUsingDirective(this);
@@ -305,16 +285,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_qualifiedIdent; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterQualifiedIdent(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitQualifiedIdent(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -380,16 +350,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_varDecl; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterVarDecl(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitVarDecl(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -457,16 +417,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_classDecl; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterClassDecl(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitClassDecl(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -537,16 +487,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_methodDecl; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterMethodDecl(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitMethodDecl(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -633,16 +573,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_formPars; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterFormPars(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitFormPars(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitFormPars(this);
@@ -703,16 +633,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_type; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterType(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitType(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitType(this);
@@ -772,16 +692,6 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(MiniCSharpParser.SEMI, 0); }
 		public BreakStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterBreakStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitBreakStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitBreakStatement(this);
@@ -803,16 +713,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ELSE() { return GetToken(MiniCSharpParser.ELSE, 0); }
 		public IfStatementContext(StatementContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterIfStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitIfStatement(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -840,16 +740,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public SwitchStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterSwitchStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitSwitchStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitSwitchStatement(this);
@@ -866,16 +756,6 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(MiniCSharpParser.SEMI, 0); }
 		public ReadStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterReadStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitReadStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitReadStatement(this);
@@ -890,16 +770,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public ReturnStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterReturnStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitReturnStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitReturnStatement(this);
@@ -909,16 +779,6 @@ public partial class MiniCSharpParser : Parser {
 	public partial class EmptyStatementContext : StatementContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEMI() { return GetToken(MiniCSharpParser.SEMI, 0); }
 		public EmptyStatementContext(StatementContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterEmptyStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitEmptyStatement(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -944,16 +804,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public DesignatorStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterDesignatorStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitDesignatorStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDesignatorStatement(this);
@@ -974,16 +824,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public WriteStatementContext(StatementContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterWriteStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitWriteStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitWriteStatement(this);
@@ -995,16 +835,6 @@ public partial class MiniCSharpParser : Parser {
 			return GetRuleContext<BlockContext>(0);
 		}
 		public BlockStatementContext(StatementContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterBlockStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitBlockStatement(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1023,16 +853,6 @@ public partial class MiniCSharpParser : Parser {
 			return GetRuleContext<StatementContext>(0);
 		}
 		public WhileStatementContext(StatementContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterWhileStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitWhileStatement(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1061,16 +881,6 @@ public partial class MiniCSharpParser : Parser {
 			return GetRuleContext<ConditionContext>(0);
 		}
 		public ForStatementContext(StatementContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterForStatement(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitForStatement(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1399,16 +1209,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_switchCase; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterSwitchCase(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitSwitchCase(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitSwitchCase(this);
@@ -1472,16 +1272,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_defaultCase; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterDefaultCase(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitDefaultCase(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDefaultCase(this);
@@ -1538,16 +1328,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_constant; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterConstant(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitConstant(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1614,16 +1394,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_block; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterBlock(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitBlock(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1700,16 +1470,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_actPars; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterActPars(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitActPars(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitActPars(this);
@@ -1772,16 +1532,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_condition; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterCondition(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitCondition(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -1846,16 +1596,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_condTerm; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterCondTerm(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitCondTerm(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitCondTerm(this);
@@ -1918,16 +1658,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_condFact; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterCondFact(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitCondFact(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitCondFact(this);
@@ -1981,16 +1711,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_cast; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterCast(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitCast(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -2047,16 +1767,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_expr; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterExpr(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitExpr(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -2143,16 +1853,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_term; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterTerm(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitTerm(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitTerm(this);
@@ -2223,16 +1923,6 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RBRACK() { return GetToken(MiniCSharpParser.RBRACK, 0); }
 		public NewFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterNewFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitNewFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNewFactor(this);
@@ -2242,16 +1932,6 @@ public partial class MiniCSharpParser : Parser {
 	public partial class CharFactorContext : FactorContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CHARCONST() { return GetToken(MiniCSharpParser.CHARCONST, 0); }
 		public CharFactorContext(FactorContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterCharFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitCharFactor(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -2270,16 +1950,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public DesignatorFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterDesignatorFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitDesignatorFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDesignatorFactor(this);
@@ -2292,16 +1962,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public NumberFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterNumberFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitNumberFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNumberFactor(this);
@@ -2311,16 +1971,6 @@ public partial class MiniCSharpParser : Parser {
 	public partial class StringFactorContext : FactorContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STRINGCONST() { return GetToken(MiniCSharpParser.STRINGCONST, 0); }
 		public StringFactorContext(FactorContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterStringFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitStringFactor(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -2336,16 +1986,6 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAREN() { return GetToken(MiniCSharpParser.RPAREN, 0); }
 		public ParenFactorContext(FactorContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterParenFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitParenFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitParenFactor(this);
@@ -2356,16 +1996,6 @@ public partial class MiniCSharpParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TRUE() { return GetToken(MiniCSharpParser.TRUE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FALSE() { return GetToken(MiniCSharpParser.FALSE, 0); }
 		public BoolFactorContext(FactorContext context) { CopyFrom(context); }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterBoolFactor(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitBoolFactor(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -2562,16 +2192,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_designator; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterDesignator(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitDesignator(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitDesignator(this);
@@ -2645,16 +2265,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_number; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterNumber(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitNumber(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitNumber(this);
@@ -2705,16 +2315,6 @@ public partial class MiniCSharpParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_relop; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterRelop(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitRelop(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
 			if (typedVisitor != null) return typedVisitor.VisitRelop(this);
@@ -2760,16 +2360,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_addop; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterAddop(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitAddop(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;
@@ -2817,16 +2407,6 @@ public partial class MiniCSharpParser : Parser {
 		{
 		}
 		public override int RuleIndex { get { return RULE_mulop; } }
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.EnterMulop(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			IMiniCSharpParserListener typedListener = listener as IMiniCSharpParserListener;
-			if (typedListener != null) typedListener.ExitMulop(this);
-		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IMiniCSharpParserVisitor<TResult> typedVisitor = visitor as IMiniCSharpParserVisitor<TResult>;

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from /Volumes/macOs/rooseveltalej/Documents/Compiladores/MiniCSharpLexer.g4 by ANTLR 4.13.2
+// Generated from C:/Users/Bayron/RiderProjects/compiladores/MiniCSharpLexer.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162

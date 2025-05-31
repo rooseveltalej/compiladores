@@ -1,21 +1,24 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+// Program.cs
+// Program.cs
 using generated;
+using System;
+using System.IO;
+using System.Reflection; // Necesario para BindingFlags y MethodInfo
+using Antlr4.Runtime;
+using Compiladores.Checker;
+using Compiladores.CodeGen;
 
 namespace Compiladores
 {
-    using Antlr4.Runtime;
-    using System;
-    using System.IO;
-    using Compiladores.Checker; 
-
     public class Compiler
     {
         public static void Main(string[] args)
         {
-            string filePath = "/Volumes/macOs/rooseveltalej/Documents/Compiladores/myProgram.mcs"; // Tu archivo de prueba MiniC#
+            string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\MyUtilities.mcs"; // O tu ruta
 
-            if (args.Length > 0) { // Permitir pasar el archivo como argumento
+            if (args.Length > 0) { 
                 filePath = args[0];
             }
             
@@ -27,53 +30,36 @@ namespace Compiladores
             
             try
             {
-                
-                // << NUEVO: Crear el CompilationManager >>
                 CompilationManager compilationManager = new CompilationManager(filePath);
                 
                 ICharStream stream = CharStreams.fromPath(filePath);
                 MiniCSharpLexer lexer = new MiniCSharpLexer(stream);
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
                 MiniCSharpParser parser = new MiniCSharpParser(tokens);
-
-                // Crear una instancia de nuestro ErrorListener
                 MyErrorListener errorListener = new MyErrorListener();
 
-                // Quitar los listeners por defecto de ANTLR
                 lexer.RemoveErrorListeners();
                 parser.RemoveErrorListeners();
-
-                // Añadir nuestro listener personalizado
                 lexer.AddErrorListener(errorListener);
                 parser.AddErrorListener(errorListener);
 
-                // Iniciar el parsing (la regla 'program' es tu punto de entrada)
                 MiniCSharpParser.ProgramContext tree = parser.program();
 
-                // Comprobar si hubo errores
                 if (errorListener.HasErrors)
                 {
-                    Console.WriteLine("Compilation failed with Lexer/Parser errors:");
+                    Console.WriteLine("Compilation (Lexer/Parser) FAILED with errors:");
                     Console.WriteLine(errorListener.ToString());
-                    // Aquí podrías mostrar los errores en tu GUI
                 }
                 else
                 {
                     Console.WriteLine("Lexer and Parser finished successfully!");
                     Console.WriteLine("Proceeding to Semantic Analysis...");
                     
-                    
-                    TablaSimbolos mainSymbolTable = new TablaSimbolos(); // Tabla para el archivo principal
-                    // << MODIFICADO: Pasar CompilationManager y la tabla de símbolos >>
+                    TablaSimbolos mainSymbolTable = new TablaSimbolos();
                     MiniCSharpChecker semanticChecker = new MiniCSharpChecker(compilationManager, mainSymbolTable, filePath);
-
                     
-                    // Visitar el árbol de sintaxis (la raíz, usualmente 'program')
-                    // El método Visit del visitor iniciará el recorrido.
-                    // 'tree' es el ProgramContext devuelto por parser.program()
                     semanticChecker.Visit(tree);
                     
-                    // Comprobar si hubo errores semánticos
                     if (semanticChecker.ErrorMessages.Count > 0)
                     {
                         Console.WriteLine($"Semantic Analysis FAILED with {semanticChecker.ErrorMessages.Count} error(s):");
@@ -85,10 +71,58 @@ namespace Compiladores
                     else
                     {
                         Console.WriteLine("Semantic Analysis for main file (and its dependencies) finished successfully! No errors found.");
-                        // Aquí, si todo está bien, procederías a la generación de código.
-                        semanticChecker.SymbolTable.PrintFlatTable();
+                        // mainSymbolTable.PrintFlatTable(); // Comentado
+
+                        Console.WriteLine("\nProceeding to Code Generation and Execution...");
+                        try
+                        {
+                            MiniCSharpCodeGenerator codeGenerator = new MiniCSharpCodeGenerator(
+                                mainSymbolTable, 
+                                filePath, // Pasando filePath
+                                "InMemoryAssembly", 
+                                semanticChecker.ExpressionTypes // <<< PASAR EL DICCIONARIO DE TIPOS
+                            );
+                            // <<< MODIFICADO: Llamar a GenerateAssemblyAndGetMainType >>>
+                            System.Type mainClassType = codeGenerator.GenerateAssemblyAndGetMainType(tree); 
+
+                            if (mainClassType != null)
+                            {
+                                Console.WriteLine("Code generation successful. Attempting to execute Main()...");
+                                MethodInfo mainMethod = mainClassType.GetMethod("Main", BindingFlags.Public | BindingFlags.Static);
+                                
+                                if (mainMethod != null)
+                                {
+                                    if (mainMethod.GetParameters().Length == 0 && mainMethod.ReturnType == typeof(void))
+                                    {
+                                        Console.WriteLine("\n--- Output from dynamically executed MiniCSharp code ---");
+                                        mainMethod.Invoke(null, null); // null para 'this' (método estático), null para parámetros
+                                        Console.WriteLine("--- End of MiniCSharp code output ---");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error: El método 'Main' generado no tiene la firma esperada (public static void Main()).");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Error: No se pudo encontrar un método 'Main' público y estático en la clase generada.");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Code generation did not produce a usable main class type.");
+                            }
+                        }
+                        catch (NotImplementedException nie)
+                        {
+                            Console.WriteLine($"Code Generation SKIPPED for a part: {nie.Message}");
+                        }
+                        catch (Exception cgEx)
+                        {
+                            Console.WriteLine($"Code Generation FAILED with an unexpected error: {cgEx.Message}");
+                            Console.WriteLine(cgEx.StackTrace);
+                        }
                     }
-                    
                 }
             }
             catch (IOException ex)
@@ -98,6 +132,7 @@ namespace Compiladores
             catch (Exception ex)
             {
                 Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
             }
         }
     }

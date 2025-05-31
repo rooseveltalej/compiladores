@@ -1,10 +1,14 @@
 ﻿// Archivo: Compiladores/Checker/TablaSimbolos.cs
 
+// Archivo: Compiladores/Checker/TablaSimbolos.cs
+
+// Archivo: Compiladores/Checker/TablaSimbolos.cs
+
 using System.Collections.Generic;
 using System.Text; 
 using System.Linq; 
-using Antlr4.Runtime; 
-using System; 
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree; // Necesario para IParseTree
 
 namespace Compiladores.Checker
 {
@@ -84,7 +88,6 @@ namespace Compiladores.Checker
 
     public class VarSymbol : Symbol
     {
-        // isConst se infiere del SymbolKind.Kind en la clase base si se establece en el constructor.
         public VarSymbol(string name, Type type, bool isConst = false)
             : base(name, type, isConst ? SymbolKind.Constant : SymbolKind.Variable) { }
     }
@@ -155,10 +158,12 @@ namespace Compiladores.Checker
         private int _currentLevel;
         private Scope _globalScope; 
 
+        // --- NUEVO: Diccionario para mapear nodos del AST a sus Scopes ---
+        private Dictionary<IParseTree, Scope> _nodeScopes = new Dictionary<IParseTree, Scope>();
+
         public int CurrentLevel => _currentLevel;
         public Scope CurrentScope => _currentScope;
         
-        // Método para establecer el ámbito actual explícitamente (usado por el Checker)
         public void SetCurrentScopeTo(Scope specificScope, int newLevel)
         {
             _currentScope = specificScope;
@@ -174,7 +179,7 @@ namespace Compiladores.Checker
 
         private void Init()
         {
-            OpenScope(); 
+            OpenScope(); // Abre el scope global (_globalScope)
             _globalScope = _currentScope; 
 
             Insert(new TypeDefSymbol("int", Type.Int));
@@ -184,15 +189,28 @@ namespace Compiladores.Checker
             Insert(new TypeDefSymbol("string", Type.String));
             Insert(new TypeDefSymbol("void", Type.Void));
             Insert(new VarSymbol("null", Type.Null, isConst: true));
+            
             var chrMethod = new MethodSymbol("chr", Type.Char);
             chrMethod.Parameters.Add(new VarSymbol("i", Type.Int));
             Insert(chrMethod);
+            
             var ordMethod = new MethodSymbol("ord", Type.Int);
             ordMethod.Parameters.Add(new VarSymbol("ch", Type.Char));
             Insert(ordMethod);
+            
             var lenMethod = new MethodSymbol("len", Type.Int);
-            lenMethod.Parameters.Add(new VarSymbol("a", new ArrayType(Type.Error)));
+            lenMethod.Parameters.Add(new VarSymbol("a", new ArrayType(Type.Error))); 
             Insert(lenMethod);
+
+            var addMethod = new MethodSymbol("add", Type.Void); 
+            addMethod.Parameters.Add(new VarSymbol("list", new ArrayType(Type.Error))); 
+            addMethod.Parameters.Add(new VarSymbol("element", Type.Error)); 
+            Insert(addMethod);
+
+            var delMethod = new MethodSymbol("del", Type.Void); 
+            delMethod.Parameters.Add(new VarSymbol("list", new ArrayType(Type.Error))); 
+            delMethod.Parameters.Add(new VarSymbol("index", Type.Int)); 
+            Insert(delMethod);
         }
 
         public bool Insert(Symbol symbol)
@@ -216,40 +234,65 @@ namespace Compiladores.Checker
             return _currentScope?.FindCurrent(name);
         }
 
-        public void OpenScope()
+        // --- MODIFICADO: OpenScope ahora puede asociar el nuevo scope con un nodo del AST ---
+        public void OpenScope(IParseTree nodeContext = null)
         {
             _currentScope = new Scope(_currentScope); 
             _currentLevel++; 
+            if (nodeContext != null)
+            {
+                // Solo añadir si no existe ya para este nodo (evitar problemas si se llama dos veces para el mismo contexto)
+                if (!_nodeScopes.ContainsKey(nodeContext))
+                {
+                    _nodeScopes.Add(nodeContext, _currentScope);
+                }
+                else
+                {
+                    // Esto podría indicar un problema en la lógica del checker si intenta abrir un scope para el mismo nodo dos veces.
+                    // O podría ser benigno si se espera que el scope se "re-asocie" (aunque es menos común).
+                    // Por ahora, podemos actualizarlo o registrar una advertencia.
+                    _nodeScopes[nodeContext] = _currentScope; // Actualiza al scope más recientemente abierto para este nodo
+                    // Console.WriteLine($"Warning: Scope for node {nodeContext.GetText().Substring(0, Math.Min(20, nodeContext.GetText().Length))} re-associated.");
+                }
+            }
         }
 
         public void CloseScope()
         {
             if (_currentScope != null)
             {
+                // No removemos de _nodeScopes al cerrar, porque el CodeGenerator
+                // necesitará acceder a esos scopes después de que el Checker haya terminado.
                 _currentScope = _currentScope.Outer; 
                 _currentLevel--; 
             }
         }
+
+        // --- NUEVO: Método para obtener el Scope asociado con un nodo del AST ---
+        public Scope GetScopeForNode(IParseTree nodeContext)
+        {
+            _nodeScopes.TryGetValue(nodeContext, out Scope scope);
+            return scope; // Devuelve el scope encontrado o null si no hay ninguno asociado
+        }
         
-        // --- NUEVO MÉTODO DE IMPRESIÓN PLANA ---
         public void PrintFlatTable()
         {
+            // ... (sin cambios en PrintFlatTable) ...
             Console.WriteLine("===== FLAT SYMBOL TABLE (Visible from Current Scope, Level: " + _currentLevel + ") =====");
             Console.WriteLine("{0,-20} {1,-10} {2,-15} {3,-15} {4,-10}", "Nombre", "Nivel Decl", "Tipo", "Clasificación", "Linea Decl");
-            Console.WriteLine(new string('-', 75)); // Línea separadora
+            Console.WriteLine(new string('-', 75)); 
 
             Scope currentVisibleScope = _currentScope;
-            List<string> printedSymbols = new List<string>(); // Para evitar duplicados si un nombre sombrea a otro
+            List<string> printedSymbols = new List<string>(); 
 
             while (currentVisibleScope != null)
             {
-                // Imprimir símbolos del scope actual si no han sido sombreados por un scope más interno
                 foreach (var symbol in currentVisibleScope.Symbols.Values.OrderBy(s => s.Name))
                 {
-                    if (!printedSymbols.Contains(symbol.Name)) // Solo imprimir si no ha sido impreso (no sombreado)
+                    if (!printedSymbols.Contains(symbol.Name)) 
                     {
                         string nombre = symbol.Name;
-                        int nivel = symbol.Level; // Nivel donde fue declarado
+                        int nivel = symbol.Level; 
                         string tipo = symbol.Type?.Name ?? "desconocido";
                         string clasificacion = symbol.Kind switch
                         {
@@ -263,98 +306,22 @@ namespace Compiladores.Checker
                         string lineaDecl = symbol.Decl?.Start?.Line.ToString() ?? "N/A";
 
                         Console.WriteLine("{0,-20} {1,-10} {2,-15} {3,-15} {4,-10}", nombre, nivel, tipo, clasificacion, lineaDecl);
-                        printedSymbols.Add(symbol.Name); // Marcar como impreso
+                        printedSymbols.Add(symbol.Name); 
                     }
                 }
-                currentVisibleScope = currentVisibleScope.Outer; // Mover al ámbito exterior
+                currentVisibleScope = currentVisibleScope.Outer; 
             }
-
             Console.WriteLine(new string('=', 75));
         }
         
         public Symbol SearchGlobal(string name) {
             if (_globalScope != null) {
-                return _globalScope.FindCurrent(name); // Busca solo en el nivel 0
+                return _globalScope.FindCurrent(name); 
             }
             return null;
         }
         
         public Scope GetGlobalScope() => _globalScope;
-        public int GetGlobalScopeLevel() => 0; // Asumiendo que el nivel global es 0
-
-
-        // --- MÉTODO DE IMPRESIÓN JERÁRQUICA (COMENTADO O PUEDES MANTENERLO) ---
-        /*
-        public void PrintToConsole()
-        {
-            Console.WriteLine("===== HIERARCHICAL SYMBOL TABLE (C#) =====");
-            if (_globalScope != null)
-            {
-                PrintScopeRecursiveToConsole(_globalScope, "");
-            }
-            else
-            {
-                Scope tempScope = _currentScope;
-                if (tempScope != null) {
-                    while(tempScope.Outer != null) {
-                        tempScope = tempScope.Outer;
-                    }
-                    PrintScopeRecursiveToConsole(tempScope, "");
-                } else {
-                    Console.WriteLine("Symbol table current scope is null and global scope not found.");
-                }
-            }
-            Console.WriteLine("===========================");
-        }
-
-        private void PrintScopeRecursiveToConsole(Scope scope, string indent)
-        {
-            if (scope == null) return;
-
-            int level = 0;
-            Scope temp = scope;
-            while (temp.Outer != null)
-            {
-                level++;
-                temp = temp.Outer;
-            }
-
-            Console.WriteLine($"{indent}--- Scope Level: {level} (ID: {scope.GetHashCode()}) ---");
-
-            if (!scope.Symbols.Any())
-            {
-                Console.WriteLine($"{indent}  (No symbols in this direct scope)");
-            }
-
-            foreach (var symbol in scope.Symbols.Values.OrderBy(s => s.Kind).ThenBy(s => s.Name))
-            {
-                string lineText = symbol.Decl?.Start?.Line.ToString() ?? "N/A";
-                Console.Write($"{indent}  > {symbol.Kind} '{symbol.Name}' : {symbol.Type.Name} (Declared at Level: {symbol.Level}, Line: {lineText})");
-                Console.WriteLine(); 
-
-                if (symbol is MethodSymbol methodSymbol)
-                {
-                    if (methodSymbol.Parameters.Any())
-                    {
-                        Console.WriteLine($"{indent}    Parameters:");
-                        foreach (var param in methodSymbol.Parameters)
-                        {
-                             string paramLine = param.Decl?.Start?.Line.ToString() ?? "N/A";
-                             Console.WriteLine($"{indent}      - {param.Kind} '{param.Name}' : {param.Type.Name} (Line: {paramLine})");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{indent}    Parameters: None");
-                    }
-                }
-                else if (symbol is ClassSymbol classSymbol && classSymbol.Type is ClassType classType)
-                {
-                    Console.WriteLine($"{indent}    Members of class '{classSymbol.Name}':");
-                    PrintScopeRecursiveToConsole(classType.Members, indent + "    ");
-                }
-            }
-        }
-        */
+        public int GetGlobalScopeLevel() => 0;
     }
 }

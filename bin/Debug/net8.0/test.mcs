@@ -1,117 +1,18 @@
-﻿// test.mcs
-class MyProgram
+﻿class MiProgramaPrueba
 {
-    int globalCounter;
-    char initialChar;
-    bool isActive;
-
-    // Método para inicializar algunos campos
-    void initialize(int counterVal, char charVal)
+    void Main() // Asegúrate que tu CodeGen defina este Main como public static
     {
-        globalCounter = counterVal;
-        initialChar = charVal;
-        isActive = true;
-    }
-
-    // Método que realiza un cálculo y devuelve un valor
-    int computeValue(int factor)
-    {
-        int localCalc;
-        localCalc = globalCounter * factor;
-        if (localCalc > 100)
-        {
-            return localCalc;
-        }
-        return localCalc / 2;
-    }
-
-    // Método para demostrar el switch case
-    void testSwitch(char option)
-    {
-        write("Testing switch with option: ");
-        write(option); // Escribimos el char directamente
-
-        switch (option)
-        {
-            case 'A':
-                write("Option A selected.");
-                break;
-            case 'B':
-                write("Option B selected.");
-                globalCounter = globalCounter + 100;
-                write("GlobalCounter incremented by 100.");
-                break;
-            case 'S': // Usando el valor de initialChar
-                write("Option S (initialChar) selected.");
-                break;
-            default:
-                write("Default option selected because no other case matched.");
-                break;
-        }
-        write("Exited switch statement.");
-    }
-    
-    // Método principal de ejemplo
-    void main()
-    {
-        int loopLimit;
-        int i;
-        int result;
-        char tempChar;
-        int[] numbers;
-        char switchOption;
-
-        loopLimit = 5;
-        initialize(10, 'S'); // Llamada a método de la misma clase
-
-        if (isActive && globalCounter < 15)
-        {
-            write("Initialization was successful and counter is small.");
-            write(globalCounter);
-            write(initialChar);
-        }
-
-        result = computeValue(loopLimit); // Llamada a método y asignación del resultado
-        write(result);
-
-        // Uso de un bucle y la función predefinida 'chr'
-        i = 0;
-        while (i < loopLimit)
-        {
-            tempChar = chr(65 + i); // 65 es 'A'
-            write(tempChar);
-            i = i + 1;
-        }
-        
-        // Uso de arreglos y 'new'
-        numbers = new int[3];
-        numbers[0] = result;
-        numbers[1] = len(numbers) * 10; // Uso de la función predefinida 'len'
-        numbers[2] = ord('C');          // Uso de la función predefinida 'ord'
-        write(numbers[0]);
-        write(numbers[1]);
-        write(numbers[2]);
-
-        // Demostración del switch case
-        switchOption = 'B';
-        testSwitch(switchOption); // Probamos con 'B'
-
-        testSwitch(initialChar);  // Probamos con 'S' (el valor de initialChar)
-
-        testSwitch('X');          // Probamos con una opción que irá al default
-        
-        // También se puede usar un int en el switch
-        // switch (loopLimit)
-        // {
-        //    case 5:
-        //        write("Loop limit is 5.");
-        //        break;
-        //    case 10:
-        //        write("Loop limit is 10.");
-        //        break;
-        //    default:
-        //        write("Loop limit is something else.");
-        //        break;
-        // }
+        write("--- Inicio de la ejecución de test.mcs ---");
+        write("Hola desde MiniCSharp ejecutado en memoria!");
+        write(123);
+        write(true);
+        write(false);
+        write('X');
+        // A medida que implementes más cosas en CodeGen, puedes añadir más aquí:
+        // write(10 + 5); // Necesitará VisitExpr, VisitTerm, OpCodes.Add
+        // int a;
+        // a = 10;
+        // write(a); // Necesitará VisitVarDecl (local), VisitDesignatorStatement (asignación), VisitDesignatorFactor (leer variable)
+        write("--- Fin de la ejecución de test.mcs ---");
     }
 }
