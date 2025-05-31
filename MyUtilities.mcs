@@ -8,14 +8,12 @@ class MiProgramaPrueba
         int resultado;
 
         a = 10;
-        write(a); // Debería funcionar ahora si VisitDesignatorFactor carga locales
+        // write(a); // Comentado o eliminado
 
         b = 5;
-        write(b);
+        // write(b); // Comentado o eliminado
 
         resultado = a * b; 
-        write(resultado);    // Debería ser 15
-
-     
+        write(resultado);    // Solo este write se ejecutará y mostrará 50
     }
 }
