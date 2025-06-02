@@ -101,9 +101,25 @@ namespace Compiladores
                     {
                         Console.WriteLine($"Code Generation SKIPPED: {nie.Message}");
                     }
-                    catch (Exception cgEx)
+                    catch (TargetInvocationException tie) // Captura específicamente TargetInvocationException
                     {
-                        Console.WriteLine($"Code Generation FAILED: {cgEx.Message}");
+                        Console.WriteLine($"RUNTIME ERROR in generated code: {tie.Message}");
+                        if (tie.InnerException != null)
+                        {
+                            Console.WriteLine("--- Inner Exception ---");
+                            // Imprime toda la información de la InnerException, incluyendo su tipo y traza de pila
+                            Console.WriteLine(tie.InnerException.ToString()); 
+                            Console.WriteLine("--- End Inner Exception ---");
+                        }
+                        else
+                        {
+                            Console.WriteLine("No Inner Exception details available.");
+                        }
+                        Console.WriteLine(tie.StackTrace); // Traza de la TargetInvocationException
+                    }
+                    catch (Exception cgEx) // Captura otras excepciones de generación de código o ejecución
+                    {
+                        Console.WriteLine($"Code Generation or other FAILED: {cgEx.Message}");
                         Console.WriteLine(cgEx.StackTrace);
                     }
                 }

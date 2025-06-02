@@ -222,10 +222,19 @@ namespace Compiladores.CodeGen
         public override object VisitMethodDecl(MiniCSharpParser.MethodDeclContext context)
         {
             string methodName = context.IDENT().GetText();
+            // Intenta obtener el MethodSymbol del _currentCodeGenScope, que debería ser el scope de la clase.
             MethodSymbol methodSymbol = _currentCodeGenScope.FindCurrent(methodName) as MethodSymbol;
 
             if (methodSymbol == null) {
-                Console.Error.WriteLine($"CodeGen Error: No se encontró MethodSymbol para '{methodName}' en el scope de la clase '{_currentTypeBuilder?.Name}'.");
+                // Fallback: Si no se encuentra en el scope de la clase actual (por ejemplo, si _currentCodeGenScope
+                // no se estableció correctamente antes de llamar a VisitMethodDecl para los métodos de la clase principal),
+                // intenta buscarlo en el scope asociado al nodo de la clase padre del método, si es posible.
+                // Esta parte es una heurística y podría necesitar ajustes según cómo gestiones los scopes para clases.
+                // Por ahora, nos adherimos a la lógica original de que _currentCodeGenScope ya es el de la clase.
+                Console.Error.WriteLine($"CodeGen Error: No se encontró MethodSymbol para '{methodName}' en el scope de la clase '{_currentTypeBuilder?.Name}'. Scope Hash: {_currentCodeGenScope?.GetHashCode()}");
+                // Si _currentCodeGenScope es el global, y methodSymbol es de la clase principal, esto podría fallar.
+                // Asegúrate de que _currentCodeGenScope sea el scope de la clase (progClassSymbol.Type as ClassType)?.Members
+                // antes de iterar y visitar los methodDecl de esa clase.
                 return null;
             }
 
@@ -239,11 +248,22 @@ namespace Compiladores.CodeGen
             List<System.Type> paramTypesList = methodSymbol.Parameters.Select(p => ResolveNetType(p.Type)).ToList();
             System.Type[] paramTypes = paramTypesList.ToArray();
 
-            MethodAttributes attributes = MethodAttributes.Public;
-            if (methodName == "Main" && _currentTypeBuilder != null && _programContext != null && _currentTypeBuilder.Name == _programContext.IDENT().GetText())
+            MethodAttributes attributes = MethodAttributes.Public; // Todos los métodos son públicos por defecto
+
+            // --- MODIFICACIÓN INTEGRADA ---
+            // Si el _currentTypeBuilder (la clase actual que se está definiendo)
+            // es la clase principal del programa (identificada por _programContext, que se establece en VisitProgram),
+            // entonces todos sus métodos se generarán como estáticos.
+            if (_currentTypeBuilder != null && _programContext != null &&
+                _currentTypeBuilder.Name == _programContext.IDENT().GetText())
             {
                 attributes |= MethodAttributes.Static;
             }
+            // La comprobación original específica para "Main" para hacerlo estático ya está cubierta
+            // por la lógica anterior si "Main" es un método de la clase principal del programa.
+            // Si MiniCSharp permitiera un método "Main" en una clase anidada y este debiera ser estático,
+            // se necesitaría una lógica adicional o diferente. Por ahora, esta modificación
+            // asume que el "Main" ejecutable es el de la clase del programa.
 
             _currentMethodBuilder = _currentTypeBuilder.DefineMethod(methodName, attributes, returnType, paramTypes);
             _methodBuilders[methodSymbol] = _currentMethodBuilder;
@@ -255,40 +275,64 @@ namespace Compiladores.CodeGen
 
             _ilGenerator = _currentMethodBuilder.GetILGenerator();
             
-            Scope classScopeForCodeGen = _currentCodeGenScope;
+            // Guardar el scope de la clase actual para restaurarlo después
+            Scope classScopeForCodeGen = _currentCodeGenScope; 
             int originalLevelInSymbolTable = _symbolTable.CurrentLevel;
 
-            Scope methodScopeFromChecker = _symbolTable.GetScopeForNode(context); //
+            // Obtener el scope específico del método que fue creado por el Checker
+            Scope methodScopeFromChecker = _symbolTable.GetScopeForNode(context); 
 
             if (methodScopeFromChecker == null) {
-                Console.Error.WriteLine($"CodeGen CRITICAL Error: No se encontró el scope del checker para el método '{methodName}'.");
+                Console.Error.WriteLine($"CodeGen CRITICAL Error: No se encontró el scope del checker para el método '{methodName}'. Context Node Text: {context.GetText().Substring(0, Math.Min(30, context.GetText().Length))}");
+                // Restaurar y salir si no se puede proceder
                 _ilGenerator = previousILGenerator;
                 _currentMethodBuilder = previousMethodBuilder;
                 _currentGeneratingMethodSymbol = previousGeneratingMethodSymbol;
                 return null;
             }
             
+            // Establecer el scope actual del CodeGenerator y de la Tabla de Símbolos al del método
             _currentCodeGenScope = methodScopeFromChecker;
+            // El nivel del scope del método ya fue determinado por el checker y está en los símbolos (parámetros, variables locales)
+            // Aquí se ajusta _symbolTable.CurrentLevel para que coincida con el nivel donde el checker declaró los parámetros/variables locales.
+            // Podría ser methodSymbol.Level + 1 o basado en el nivel de los parámetros.
+            // Si los parámetros están en methodScopeFromChecker.Symbols, su .Level ya está establecido.
+            // Usar un nivel representativo para este scope.
+            int methodScopeLevelInSymbolTable = originalLevelInSymbolTable + 1; // Asumiendo que el método abre un nuevo nivel
+            if (methodSymbol.Parameters.Any()) {
+                methodScopeLevelInSymbolTable = methodSymbol.Parameters.First().Level;
+            } else if (methodScopeFromChecker.Symbols.Any()) { // Si no hay params, pero hay locales directos en este scope
+                 // Esto es menos común, usualmente los locales estarían en un sub-scope del bloque.
+                 // Pero si GetScopeForNode(context) es el scope más interno del método,
+                 // y las variables locales se declaran ahí.
+                 // methodScopeLevelInSymbolTable = methodScopeFromChecker.Symbols.First().Value.Level;
+            }
+             _symbolTable.SetCurrentScopeTo(methodScopeFromChecker, methodScopeLevelInSymbolTable); // Ajustar nivel de la tabla
             
-            int methodScopeLevel = methodSymbol.Parameters.Any() ? methodSymbol.Parameters[0].Level : (originalLevelInSymbolTable + 1);
-            _symbolTable.SetCurrentScopeTo(methodScopeFromChecker, methodScopeLevel);
+            Visit(context.block()); // Visitar el cuerpo del método (bloque)
             
-            Visit(context.block());
-            
+            // Restaurar el scope de la clase y el nivel en la tabla de símbolos
             _symbolTable.SetCurrentScopeTo(classScopeForCodeGen, originalLevelInSymbolTable);
             _currentCodeGenScope = classScopeForCodeGen;
 
-            bool isVoid = (returnType == typeof(void));
-            var stmts = context.block().statement();
-            bool blockIsEmptyOrNull = stmts == null || !stmts.Any();
-            var lastStatementNode = stmts?.LastOrDefault();
-            bool lastStmtIsReturn = lastStatementNode != null && lastStatementNode.GetChild(0) is MiniCSharpParser.ReturnStatementContext;
+            // Lógica para asegurar que los métodos void tengan un 'ret' si no terminan con uno explícito
+            bool isVoidMethod = (returnType == typeof(void));
+            var statementsInBlock = context.block().statement();
+            bool isBlockEmpty = statementsInBlock == null || !statementsInBlock.Any();
+            var lastStatementNodeInBlock = statementsInBlock?.LastOrDefault();
+            bool lastStatementIsReturn = lastStatementNodeInBlock != null && 
+                                         lastStatementNodeInBlock.GetChild(0) is MiniCSharpParser.ReturnStatementContext;
 
-            if (isVoid && (blockIsEmptyOrNull || !lastStmtIsReturn) )
+            if (isVoidMethod && (isBlockEmpty || !lastStatementIsReturn) )
             {
-                _ilGenerator.Emit(OpCodes.Ret);
+                // Solo emitir Ret si el ILGenerator sigue siendo el de este método
+                // (para evitar problemas si hubo un error y se restauró el ILGenerator anterior)
+                if (_ilGenerator == _currentMethodBuilder.GetILGenerator()) {
+                   _ilGenerator.Emit(OpCodes.Ret);
+                }
             }
             
+            // Restaurar el estado anterior del generador de métodos
             _currentGeneratingMethodSymbol = previousGeneratingMethodSymbol;
             _ilGenerator = previousILGenerator;
             _currentMethodBuilder = previousMethodBuilder;
