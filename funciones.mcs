@@ -1,0 +1,49 @@
+class TestReturnProgram
+{
+    // Método que devuelve un valor (int)
+    int CalculateSum(int a, int b)
+    {
+        int result;
+        result = a + b;
+        return result; // RETURN con expr
+    }
+
+    // Método void con un return explícito (sin expr)
+    void PrintMessage(int val)
+    {
+        if (val > 10)
+        {
+            write("El valor es mayor que 10.");
+            return; // RETURN sin expr (en un método void)
+        }
+        write("El valor no es mayor que 10, o es 10.");
+        // Un return implícito también estaría bien aquí para un método void
+    }
+
+    // Método principal para probar los otros métodos
+    void Main()
+    {
+        int sumResult;
+        int testVal1;
+        int testVal2;
+
+        testVal1 = 5;
+        testVal2 = 7;
+        sumResult = CalculateSum(testVal1, testVal2);
+
+        write("La suma es: ");
+        write(sumResult); // Debería imprimir 12
+
+        PrintMessage(sumResult); // Como 12 > 10, debería imprimir "El valor es mayor que 10." y retornar.
+
+        PrintMessage(5);       // Debería imprimir "El valor no es mayor que 10, o es 10."
+
+        // Prueba de return en Main
+        if (sumResult == 12) {
+            write("Saliendo de Main temprano.");
+            return; // RETURN sin expr (en Main, que es void)
+        }
+
+        write("Esta línea no debería ejecutarse si sumResult es 12.");
+    }
+}
