@@ -18,7 +18,7 @@ class Program
         // 2. La condición "i <= 5" es válida.
         // 3. El iterador "i++" debe ser un statement completo. Un DesignatorStatement para i++ es "i++;".
         //    Alternativamente, "i = i + 1;" también es un statement completo.
-        for ( ; i <= 5; i = i + 1; ) // Dejamos la expr? de inicialización vacía. Usamos "i = i + 1;" como iter_stmt.
+        for (i ; i <= 5; i = i + 1; ) // Dejamos la expr? de inicialización vacía. Usamos "i = i + 1;" como iter_stmt.
         {
             write("Iteración del FOR: ");
             write(i);
