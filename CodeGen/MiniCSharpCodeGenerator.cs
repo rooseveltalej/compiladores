@@ -222,19 +222,10 @@ namespace Compiladores.CodeGen
         public override object VisitMethodDecl(MiniCSharpParser.MethodDeclContext context)
         {
             string methodName = context.IDENT().GetText();
-            // Intenta obtener el MethodSymbol del _currentCodeGenScope, que debería ser el scope de la clase.
             MethodSymbol methodSymbol = _currentCodeGenScope.FindCurrent(methodName) as MethodSymbol;
 
             if (methodSymbol == null) {
-                // Fallback: Si no se encuentra en el scope de la clase actual (por ejemplo, si _currentCodeGenScope
-                // no se estableció correctamente antes de llamar a VisitMethodDecl para los métodos de la clase principal),
-                // intenta buscarlo en el scope asociado al nodo de la clase padre del método, si es posible.
-                // Esta parte es una heurística y podría necesitar ajustes según cómo gestiones los scopes para clases.
-                // Por ahora, nos adherimos a la lógica original de que _currentCodeGenScope ya es el de la clase.
                 Console.Error.WriteLine($"CodeGen Error: No se encontró MethodSymbol para '{methodName}' en el scope de la clase '{_currentTypeBuilder?.Name}'. Scope Hash: {_currentCodeGenScope?.GetHashCode()}");
-                // Si _currentCodeGenScope es el global, y methodSymbol es de la clase principal, esto podría fallar.
-                // Asegúrate de que _currentCodeGenScope sea el scope de la clase (progClassSymbol.Type as ClassType)?.Members
-                // antes de iterar y visitar los methodDecl de esa clase.
                 return null;
             }
 
@@ -248,22 +239,13 @@ namespace Compiladores.CodeGen
             List<System.Type> paramTypesList = methodSymbol.Parameters.Select(p => ResolveNetType(p.Type)).ToList();
             System.Type[] paramTypes = paramTypesList.ToArray();
 
-            MethodAttributes attributes = MethodAttributes.Public; // Todos los métodos son públicos por defecto
+            MethodAttributes attributes = MethodAttributes.Public; 
 
-            // --- MODIFICACIÓN INTEGRADA ---
-            // Si el _currentTypeBuilder (la clase actual que se está definiendo)
-            // es la clase principal del programa (identificada por _programContext, que se establece en VisitProgram),
-            // entonces todos sus métodos se generarán como estáticos.
             if (_currentTypeBuilder != null && _programContext != null &&
                 _currentTypeBuilder.Name == _programContext.IDENT().GetText())
             {
                 attributes |= MethodAttributes.Static;
             }
-            // La comprobación original específica para "Main" para hacerlo estático ya está cubierta
-            // por la lógica anterior si "Main" es un método de la clase principal del programa.
-            // Si MiniCSharp permitiera un método "Main" en una clase anidada y este debiera ser estático,
-            // se necesitaría una lógica adicional o diferente. Por ahora, esta modificación
-            // asume que el "Main" ejecutable es el de la clase del programa.
 
             _currentMethodBuilder = _currentTypeBuilder.DefineMethod(methodName, attributes, returnType, paramTypes);
             _methodBuilders[methodSymbol] = _currentMethodBuilder;
@@ -275,47 +257,32 @@ namespace Compiladores.CodeGen
 
             _ilGenerator = _currentMethodBuilder.GetILGenerator();
             
-            // Guardar el scope de la clase actual para restaurarlo después
             Scope classScopeForCodeGen = _currentCodeGenScope; 
             int originalLevelInSymbolTable = _symbolTable.CurrentLevel;
 
-            // Obtener el scope específico del método que fue creado por el Checker
             Scope methodScopeFromChecker = _symbolTable.GetScopeForNode(context); 
 
             if (methodScopeFromChecker == null) {
                 Console.Error.WriteLine($"CodeGen CRITICAL Error: No se encontró el scope del checker para el método '{methodName}'. Context Node Text: {context.GetText().Substring(0, Math.Min(30, context.GetText().Length))}");
-                // Restaurar y salir si no se puede proceder
                 _ilGenerator = previousILGenerator;
                 _currentMethodBuilder = previousMethodBuilder;
                 _currentGeneratingMethodSymbol = previousGeneratingMethodSymbol;
                 return null;
             }
             
-            // Establecer el scope actual del CodeGenerator y de la Tabla de Símbolos al del método
             _currentCodeGenScope = methodScopeFromChecker;
-            // El nivel del scope del método ya fue determinado por el checker y está en los símbolos (parámetros, variables locales)
-            // Aquí se ajusta _symbolTable.CurrentLevel para que coincida con el nivel donde el checker declaró los parámetros/variables locales.
-            // Podría ser methodSymbol.Level + 1 o basado en el nivel de los parámetros.
-            // Si los parámetros están en methodScopeFromChecker.Symbols, su .Level ya está establecido.
-            // Usar un nivel representativo para este scope.
-            int methodScopeLevelInSymbolTable = originalLevelInSymbolTable + 1; // Asumiendo que el método abre un nuevo nivel
+            int methodScopeLevelInSymbolTable = originalLevelInSymbolTable + 1; 
             if (methodSymbol.Parameters.Any()) {
                 methodScopeLevelInSymbolTable = methodSymbol.Parameters.First().Level;
-            } else if (methodScopeFromChecker.Symbols.Any()) { // Si no hay params, pero hay locales directos en este scope
-                 // Esto es menos común, usualmente los locales estarían en un sub-scope del bloque.
-                 // Pero si GetScopeForNode(context) es el scope más interno del método,
-                 // y las variables locales se declaran ahí.
-                 // methodScopeLevelInSymbolTable = methodScopeFromChecker.Symbols.First().Value.Level;
+            } else if (methodScopeFromChecker.Symbols.Any()) { 
             }
-             _symbolTable.SetCurrentScopeTo(methodScopeFromChecker, methodScopeLevelInSymbolTable); // Ajustar nivel de la tabla
+             _symbolTable.SetCurrentScopeTo(methodScopeFromChecker, methodScopeLevelInSymbolTable); 
             
-            Visit(context.block()); // Visitar el cuerpo del método (bloque)
+            Visit(context.block()); 
             
-            // Restaurar el scope de la clase y el nivel en la tabla de símbolos
             _symbolTable.SetCurrentScopeTo(classScopeForCodeGen, originalLevelInSymbolTable);
             _currentCodeGenScope = classScopeForCodeGen;
 
-            // Lógica para asegurar que los métodos void tengan un 'ret' si no terminan con uno explícito
             bool isVoidMethod = (returnType == typeof(void));
             var statementsInBlock = context.block().statement();
             bool isBlockEmpty = statementsInBlock == null || !statementsInBlock.Any();
@@ -325,14 +292,11 @@ namespace Compiladores.CodeGen
 
             if (isVoidMethod && (isBlockEmpty || !lastStatementIsReturn) )
             {
-                // Solo emitir Ret si el ILGenerator sigue siendo el de este método
-                // (para evitar problemas si hubo un error y se restauró el ILGenerator anterior)
                 if (_ilGenerator == _currentMethodBuilder.GetILGenerator()) {
                    _ilGenerator.Emit(OpCodes.Ret);
                 }
             }
             
-            // Restaurar el estado anterior del generador de métodos
             _currentGeneratingMethodSymbol = previousGeneratingMethodSymbol;
             _ilGenerator = previousILGenerator;
             _currentMethodBuilder = previousMethodBuilder;
@@ -470,7 +434,6 @@ namespace Compiladores.CodeGen
             return null;
         }
 
-        // ***** MÉTODO MODIFICADO / NUEVO *****
         public override object VisitDesignatorFactor(MiniCSharpParser.DesignatorFactorContext context)
         {
             if (_ilGenerator == null)
@@ -481,22 +444,19 @@ namespace Compiladores.CodeGen
 
             var designatorNode = context.designator();
 
-            if (context.LPAREN() == null) // No es una llamada a método, es una variable, campo o acceso a array.
+            if (context.LPAREN() == null) 
             {
-                // Caso 1: Acceso a Array (ej. miArray[indice])
-                if (designatorNode.LBRACK().Length > 0) // designator: IDENT (DOT IDENT | LBRACK expr RBRACK)*;
+                if (designatorNode.LBRACK().Length > 0) 
                 {
-                    // El designador es del tipo IDENT LBRACK expr RBRACK (simplificado para un solo índice)
                     string baseArrayName = designatorNode.IDENT(0).GetText();
                     Symbol baseArraySymbol = _currentCodeGenScope.Find(baseArrayName);
 
-                    if (!(baseArraySymbol is VarSymbol arrayVarSymbol) || !(arrayVarSymbol.Type is ArrayType arrayMiniCSharpType)) //
+                    if (!(baseArraySymbol is VarSymbol arrayVarSymbol) || !(arrayVarSymbol.Type is ArrayType arrayMiniCSharpType)) 
                     {
                         Console.Error.WriteLine($"CodeGen Error (VisitDesignatorFactor): Designator '{baseArrayName}' no es un array o no se encontró.");
-                        return null; // O emitir ldnull y dejar que falle en runtime
+                        return null; 
                     }
 
-                    // 1. Cargar la referencia del array en la pila
                     if (_localBuilders.TryGetValue(arrayVarSymbol, out LocalBuilder lb))
                     {
                         _ilGenerator.Emit(OpCodes.Ldloc, lb);
@@ -509,7 +469,7 @@ namespace Compiladores.CodeGen
                     }
                     else if (_fieldBuilders.TryGetValue(arrayVarSymbol, out FieldBuilder fb))
                     {
-                        if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this'
+                        if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); 
                         _ilGenerator.Emit(fb.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fb);
                     }
                     else
@@ -517,23 +477,13 @@ namespace Compiladores.CodeGen
                         Console.Error.WriteLine($"CodeGen Error (VisitDesignatorFactor): No se encontró almacenamiento para el array '{baseArrayName}'.");
                         return null;
                     }
-                    // Pila: [array_ref]
-
-                    // 2. Cargar el índice en la pila
-                    Visit(designatorNode.expr(0)); // Asume un solo índice por ahora
-                                                 // El checker asegura que expr(0) es int
-                    // Pila: [array_ref, index_val]
-
-                    // 3. Emitir Ldelem.*
-                    // GetExpressionType(designatorNode) devuelve el TIPO DEL ELEMENTO del array (gracias al checker)
+                    Visit(designatorNode.expr(0)); 
                     Compiladores.Checker.Type elementType = GetExpressionType(designatorNode);
                     OpCode ldElemOpCode = GetLdElemOpCode(elementType);
                     _ilGenerator.Emit(ldElemOpCode);
                     Console.WriteLine($"CodeGen INFO (VisitDesignatorFactor): Emitido {ldElemOpCode} para cargar elemento de array '{baseArrayName}'.");
-                    // Pila: [element_value]
                 }
-                // Caso 2: Designador simple (variable, parámetro, campo)
-                else if (designatorNode.DOT().Length == 0) // Es un IDENT simple
+                else if (designatorNode.DOT().Length == 0) 
                 {
                     string varName = designatorNode.IDENT(0).GetText();
                     Symbol symbol = _currentCodeGenScope.Find(varName);
@@ -551,7 +501,7 @@ namespace Compiladores.CodeGen
                                 Console.Error.WriteLine($"CodeGen Error (VisitDesignatorFactor): Carga de constante con nombre '{varSymbol.Name}' no implementada (aparte de 'null').");
                             }
                         }
-                        else // Variable o Parámetro
+                        else 
                         {
                             if (_localBuilders.TryGetValue(varSymbol, out LocalBuilder lb))
                             {
@@ -565,7 +515,7 @@ namespace Compiladores.CodeGen
                             }
                             else if (_fieldBuilders.TryGetValue(varSymbol, out FieldBuilder fb))
                             {
-                                if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this'
+                                if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); 
                                 _ilGenerator.Emit(fb.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fb);
                             }
                             else
@@ -579,21 +529,19 @@ namespace Compiladores.CodeGen
                         Console.Error.WriteLine($"CodeGen Error (VisitDesignatorFactor): Símbolo '{varName}' no es VarSymbol o no encontrado.");
                     }
                 }
-                else // Es un designador complejo con DOT (obj.field), no implementado completamente aquí para carga
+                else 
                 {
-                    // TODO: Implementar carga para obj.field
                     Console.Error.WriteLine($"CodeGen Error (VisitDesignatorFactor): Carga para designador con DOT '{designatorNode.GetText()}' no completamente implementada.");
-                     _ilGenerator.Emit(OpCodes.Ldnull); // Dejar algo en la pila para evitar errores de pila posteriores.
+                     _ilGenerator.Emit(OpCodes.Ldnull); 
                 }
             }
-            else // Es una llamada a método: designator ( [actPars] )
+            else 
             {
                 HandleMethodCall(designatorNode, context.actPars());
             }
             return null;
         }
 
-        // ***** MÉTODO MODIFICADO / NUEVO *****
         public override object VisitDesignatorStatement(MiniCSharpParser.DesignatorStatementContext context)
 {
     if (_ilGenerator == null)
@@ -604,14 +552,9 @@ namespace Compiladores.CodeGen
 
     var designatorNode = context.designator();
 
-    if (context.ASSIGN() != null) // Asignación: designator = expr
+    if (context.ASSIGN() != null) 
     {
-        // >>> TU CÓDIGO DE ASIGNACIÓN EXISTENTE VA AQUÍ <<<
-        // Esta parte ya la tenías y parecía estar funcionando para variables y arrays.
-        // Solo asegúrate que el manejo de campos de objetos (obj.field = expr)
-        // también esté completo si lo necesitas.
-        // Ejemplo de estructura (debes mantener tu lógica funcional aquí):
-        if (designatorNode.LBRACK().Length > 0) // Asignación a array: arr[idx] = expr
+        if (designatorNode.LBRACK().Length > 0) 
         {
             string baseArrayName = designatorNode.IDENT(0).GetText();
             Symbol baseArraySymbol = _currentCodeGenScope.Find(baseArrayName);
@@ -622,11 +565,11 @@ namespace Compiladores.CodeGen
                 if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
                 return null;
             }
-            EmitLoadArrayAndIndex(arrayVarSymbol, designatorNode.expr(0)); // Carga array_ref e index
-            Visit(context.expr()); // Carga valor del RHS
+            EmitLoadArrayAndIndex(arrayVarSymbol, designatorNode.expr(0)); 
+            Visit(context.expr()); 
             
             Compiladores.Checker.Type rhsType = GetExpressionType(context.expr());
-            Compiladores.Checker.Type lhsElementType = GetExpressionType(designatorNode); // Tipo del elemento del array
+            Compiladores.Checker.Type lhsElementType = GetExpressionType(designatorNode); 
 
             if (lhsElementType == Compiladores.Checker.Type.Double && rhsType == Compiladores.Checker.Type.Int)
             {
@@ -634,11 +577,11 @@ namespace Compiladores.CodeGen
             }
             _ilGenerator.Emit(GetStElemOpCode(lhsElementType));
         }
-        else if (designatorNode.DOT().Length == 0) // Asignación a variable simple o parámetro
+        else if (designatorNode.DOT().Length == 0) 
         {
             string varName = designatorNode.IDENT(0).GetText();
             Symbol symbol = _currentCodeGenScope.Find(varName);
-             if (symbol == null && _currentTypeBuilder != null) // Podría ser un campo de la clase actual
+             if (symbol == null && _currentTypeBuilder != null) 
             {
                  Scope classScope = GetCurrentClassScopeForFieldAccess(varName);
                  if (classScope != null) symbol = classScope.FindCurrent(varName);
@@ -659,7 +602,7 @@ namespace Compiladores.CodeGen
                 isStaticFieldAssign = fbAssign.IsStatic;
                 if (!isStaticFieldAssign)
                 {
-                    _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this' para Stfld
+                    _ilGenerator.Emit(OpCodes.Ldarg_0); 
                 }
             }
             
@@ -691,44 +634,43 @@ namespace Compiladores.CodeGen
                 Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement Assign): No se encontró almacenamiento para '{varSymbol.Name}'.");
             }
         }
-        else // Asignación a obj.field (simplificado, asume un solo DOT)
+        else 
         {
-             // TODO: Implementar asignación a obj.field si es necesario para tu lenguaje
             Console.Error.WriteLine($"CodeGen Warning (VisitDesignatorStatement Assign): Asignación a campo de objeto anidado '{designatorNode.GetText()}' podría no estar completamente implementada.");
              if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
         }
     }
-    else if (context.INC() != null || context.DEC() != null) // Operadores ++ o --
+    else if (context.INC() != null || context.DEC() != null) 
     {
         string baseIdentName = designatorNode.IDENT(0).GetText();
-        Symbol symbol = _currentCodeGenScope.Find(baseIdentName); // Para locales, parámetros
+        Symbol symbol = _currentCodeGenScope.Find(baseIdentName); 
         bool isArrayElement = designatorNode.LBRACK().Length > 0;
         bool isField = false;
         FieldBuilder fieldForIncDec = null;
 
-        if (symbol == null && !isArrayElement && _currentTypeBuilder != null) // Podría ser un campo de la clase actual (si no es local/param ni array)
+        if (symbol == null && !isArrayElement && _currentTypeBuilder != null) 
         {
             Scope classScope = GetCurrentClassScopeForFieldAccess(baseIdentName);
             if (classScope != null) {
                  symbol = classScope.FindCurrent(baseIdentName);
-                 if (symbol is VarSymbol vs && _fieldBuilders.TryGetValue(vs, out fieldForIncDec)) {
+                 if (symbol is VarSymbol vs_inc_dec && _fieldBuilders.TryGetValue(vs_inc_dec, out fieldForIncDec)) {
                      isField = true;
                  } else {
-                     symbol = null; // No era un campo conocido
+                     symbol = null; 
                  }
             }
-        } else if (symbol is VarSymbol vs && _fieldBuilders.TryGetValue(vs, out fieldForIncDec)) {
-            isField = true; // Símbolo encontrado directamente era un campo mapeado
+        } else if (symbol is VarSymbol vs_direct_field && _fieldBuilders.TryGetValue(vs_direct_field, out fieldForIncDec)) {
+            isField = true; 
         }
 
 
-        if (symbol == null && !isArrayElement) { // Si después de todos los intentos, no hay símbolo y no es array
+        if (symbol == null && !isArrayElement) { 
             Console.Error.WriteLine($"CodeGen Error (INC/DEC): Identificador '{baseIdentName}' no encontrado.");
             return null;
         }
 
-        VarSymbol varSymbol = null;
-        Compiladores.Checker.Type targetType; // El tipo de la variable/campo/elemento que se incrementa/decrementa
+        VarSymbol varSymbol_inc_dec = null;
+        Compiladores.Checker.Type targetType; 
 
         if (isArrayElement) {
             Symbol arrayBaseSymbol = _currentCodeGenScope.Find(baseIdentName);
@@ -740,115 +682,96 @@ namespace Compiladores.CodeGen
                 Console.Error.WriteLine($"CodeGen Error (INC/DEC): Array base '{baseIdentName}' no encontrado o no es un array.");
                 return null;
             }
-            varSymbol = arrayVarSym; // Para usar en EmitLoadArrayAndIndex
-            targetType = arrayTypeObj.ElementType; // El tipo del elemento
+            varSymbol_inc_dec = arrayVarSym; 
+            targetType = arrayTypeObj.ElementType; 
         } else {
-            varSymbol = symbol as VarSymbol;
-            if (varSymbol == null) {
+            varSymbol_inc_dec = symbol as VarSymbol;
+            if (varSymbol_inc_dec == null) {
                  Console.Error.WriteLine($"CodeGen Error (INC/DEC): Símbolo '{baseIdentName}' no es una variable modificable.");
                  return null;
             }
-            targetType = varSymbol.Type;
+            targetType = varSymbol_inc_dec.Type;
         }
         
-        // El checker ya validó que targetType sea int o double
         if (targetType != Compiladores.Checker.Type.Int && targetType != Compiladores.Checker.Type.Double) {
              Console.Error.WriteLine($"CodeGen Error (INC/DEC): Operador solo para int o double, no para {targetType.Name}.");
              return null;
         }
 
-        // 1. Cargar "target" y valor actual
         if (isArrayElement)
         {
-            // Para array[index]++
-            // Pila necesaria para Stelem: array_ref, index, new_value
-            // Pila necesaria para Ldelem: array_ref, index (para obtener old_value)
-            
-            // Cargar array_ref e index (para Ldelem y luego para Stelem)
-            EmitLoadArrayAndIndex(varSymbol, designatorNode.expr(0)); // Pila: array_ref, index
-            _ilGenerator.Emit(OpCodes.Dup);                          // Pila: array_ref, index, index (para Stelem)
+            EmitLoadArrayAndIndex(varSymbol_inc_dec, designatorNode.expr(0)); 
+            _ilGenerator.Emit(OpCodes.Dup);                          
             LocalBuilder tempIndex = _ilGenerator.DeclareLocal(typeof(int));
-            _ilGenerator.Emit(OpCodes.Stloc, tempIndex);             // Guarda index para Stelem. Pila: array_ref, index
-            _ilGenerator.Emit(OpCodes.Dup);                          // Pila: array_ref, index, array_ref (para Stelem)
-            LocalBuilder tempArrayRef = _ilGenerator.DeclareLocal(ResolveNetType(varSymbol.Type));
-             _ilGenerator.Emit(OpCodes.Stloc, tempArrayRef);          // Guarda array_ref para Stelem. Pila: array_ref, index
+            _ilGenerator.Emit(OpCodes.Stloc, tempIndex);             
+            _ilGenerator.Emit(OpCodes.Dup);                          
+            LocalBuilder tempArrayRef = _ilGenerator.DeclareLocal(ResolveNetType(varSymbol_inc_dec.Type));
+             _ilGenerator.Emit(OpCodes.Stloc, tempArrayRef);          
 
-            _ilGenerator.Emit(GetLdElemOpCode(targetType)); // Carga valor_elemento. Pila: valor_elemento
+            _ilGenerator.Emit(GetLdElemOpCode(targetType)); 
         }
-        else if (isField) // Es un campo
+        else if (isField) 
         {
-            if (!fieldForIncDec.IsStatic) // Campo de instancia
+            if (!fieldForIncDec.IsStatic) 
             {
-                _ilGenerator.Emit(OpCodes.Ldarg_0); // Carga 'this'
-                _ilGenerator.Emit(OpCodes.Dup);     // Duplica 'this'. Pila: this, this
+                _ilGenerator.Emit(OpCodes.Ldarg_0); 
+                _ilGenerator.Emit(OpCodes.Dup);     
             }
-            _ilGenerator.Emit(fieldForIncDec.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fieldForIncDec); // Carga valor. Si instancia, Pila: this, valor_campo
+            _ilGenerator.Emit(fieldForIncDec.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fieldForIncDec); 
         }
-        else if (_localBuilders.TryGetValue(varSymbol, out LocalBuilder lbIncDec)) // Es local
+        else if (_localBuilders.TryGetValue(varSymbol_inc_dec, out LocalBuilder lbIncDec)) 
         {
             _ilGenerator.Emit(OpCodes.Ldloc, lbIncDec);
         }
         else if (_currentGeneratingMethodSymbol != null &&
-                 _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level) is VarSymbol paramSymbol) // Es parámetro
+                 _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == varSymbol_inc_dec.Name && p.Level == varSymbol_inc_dec.Level) is VarSymbol paramSymbol_inc_dec) 
         {
-            int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
+            int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol_inc_dec);
             _ilGenerator.Emit(OpCodes.Ldarg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
         }
         else
         {
-            Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement INC/DEC): No se encontró almacenamiento para VarSymbol '{varSymbol?.Name ?? baseIdentName}'.");
+            Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement INC/DEC): No se encontró almacenamiento para VarSymbol '{varSymbol_inc_dec?.Name ?? baseIdentName}'.");
             return null;
         }
 
-        // Pila actual: (target_ref si es campo de instancia), old_value  O  old_array_element_value
-
-        // 2. Cargar el valor 1
         _ilGenerator.Emit(OpCodes.Ldc_I4_1);
         if (targetType == Compiladores.Checker.Type.Double)
         {
             _ilGenerator.Emit(OpCodes.Conv_R8); 
         }
 
-        // 3. Realizar la operación
         if (context.INC() != null) _ilGenerator.Emit(OpCodes.Add);
         else _ilGenerator.Emit(OpCodes.Sub);
 
-        // Pila actual: (target_ref si es campo de instancia), new_value O new_array_element_value
-
-        // 4. Almacenar el nuevo valor
         if (isArrayElement)
         {
-            // Pila actual: new_value_elemento
-            // Necesitamos para Stelem: array_ref, index, new_value_elemento
             LocalBuilder tempNewValue = _ilGenerator.DeclareLocal(ResolveNetType(targetType));
-            _ilGenerator.Emit(OpCodes.Stloc, tempNewValue); // Guarda new_value_elemento
+            _ilGenerator.Emit(OpCodes.Stloc, tempNewValue); 
 
-            // Recuperar array_ref e index guardados (que ya estaban en orden para Stelem)
-            // Esto asume que tempArrayRef y tempIndex fueron definidos y cargados correctamente arriba
-            _ilGenerator.Emit(OpCodes.Ldloc, _localBuilders.First(kv => kv.Value.LocalType == ResolveNetType(varSymbol.Type) && kv.Value.IsPinned == false && kv.Key.Name == varSymbol.Name ).Value ); // Esto es un hack peligroso si hay multiples locales del mismo tipo. Necesitas el LocalBuilder específico del array guardado en tempArrayRef
-            _ilGenerator.Emit(OpCodes.Ldloc, _localBuilders.First(kv => kv.Value.LocalType == typeof(int) && kv.Value.IsPinned == false).Value); // Igual hack para tempIndex
+            _ilGenerator.Emit(OpCodes.Ldloc, _localBuilders.First(kv => kv.Value.LocalType == ResolveNetType(varSymbol_inc_dec.Type) && kv.Value.IsPinned == false && kv.Key.Name == varSymbol_inc_dec.Name ).Value ); 
+            _ilGenerator.Emit(OpCodes.Ldloc, _localBuilders.First(kv => kv.Value.LocalType == typeof(int) && kv.Value.IsPinned == false).Value); 
 
-            _ilGenerator.Emit(OpCodes.Ldloc, tempNewValue); // Carga new_value_elemento
+            _ilGenerator.Emit(OpCodes.Ldloc, tempNewValue); 
             _ilGenerator.Emit(GetStElemOpCode(targetType));
         }
         else if (isField) 
         {
-             // Si es de instancia, 'this' ya está en la pila desde el Dup. Pila: this, nuevo_valor
             _ilGenerator.Emit(fieldForIncDec.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, fieldForIncDec);
         }
-        else if (_localBuilders.ContainsKey(varSymbol))
+        else if (_localBuilders.ContainsKey(varSymbol_inc_dec))
         {
-            _ilGenerator.Emit(OpCodes.Stloc, _localBuilders[varSymbol]);
+            _ilGenerator.Emit(OpCodes.Stloc, _localBuilders[varSymbol_inc_dec]);
         }
         else if (_currentGeneratingMethodSymbol != null &&
-                 _currentGeneratingMethodSymbol.Parameters.Any(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level) )
+                 _currentGeneratingMethodSymbol.Parameters.Any(p => p.Name == varSymbol_inc_dec.Name && p.Level == varSymbol_inc_dec.Level) )
         {
-            VarSymbol paramSymbol = _currentGeneratingMethodSymbol.Parameters.First(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level);
-            int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
-            _ilGenerator.Emit(OpCodes.Starg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
+            VarSymbol paramSymbol_for_store = _currentGeneratingMethodSymbol.Parameters.First(p => p.Name == varSymbol_inc_dec.Name && p.Level == varSymbol_inc_dec.Level);
+            int paramIndex_for_store = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol_for_store);
+            _ilGenerator.Emit(OpCodes.Starg, (short)(_currentMethodBuilder.IsStatic ? paramIndex_for_store : paramIndex_for_store + 1));
         }
     }
-    else if (context.LPAREN() != null) // Llamada a método como statement
+    else if (context.LPAREN() != null) 
     {
         HandleMethodCall(designatorNode, context.actPars());
         Symbol calledSymbol = ResolveDesignatorToCallableSymbol(designatorNode);
@@ -870,7 +793,6 @@ namespace Compiladores.CodeGen
         
         private void EmitLoadArrayAndIndex(VarSymbol arrayVarSymbol, MiniCSharpParser.ExprContext indexExprContext)
         {
-            // 1. Cargar la referencia del array en la pila
             if (_localBuilders.TryGetValue(arrayVarSymbol, out LocalBuilder lb))
             {
                 _ilGenerator.Emit(OpCodes.Ldloc, lb);
@@ -883,7 +805,7 @@ namespace Compiladores.CodeGen
             }
             else if (_fieldBuilders.TryGetValue(arrayVarSymbol, out FieldBuilder fb))
             {
-                if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this'
+                if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); 
                 _ilGenerator.Emit(fb.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fb);
             }
             else
@@ -893,35 +815,24 @@ namespace Compiladores.CodeGen
                 _ilGenerator.Emit(OpCodes.Ldc_I4_0); 
                 return;
             }
-            // Pila: [array_ref]
-
-            // 2. Cargar el índice en la pila
             Visit(indexExprContext); 
-            // Pila: [array_ref, index_val]
         }
         
         private Scope GetCurrentClassScopeForFieldAccess(string fieldNameHint) {
             if (_currentTypeBuilder == null) return null;
-
-            // Intenta obtener el ClassSymbol asociado al _currentTypeBuilder actual
-            // Esto es una simplificación; necesitarás una forma robusta de mapear _currentTypeBuilder a su ClassSymbol.
-            // Primero busca si el _currentTypeBuilder es una clase anidada.
             Symbol classSym = null;
             if (_currentTypeBuilder.IsNested && _currentTypeBuilder.DeclaringType != null) {
-                // Si es anidada, necesitamos el ClassSymbol del tipo declarante.
                 Symbol outerClassSym = _symbolTable.SearchGlobal(_currentTypeBuilder.DeclaringType.Name);
                 if (outerClassSym is ClassSymbol ocs && ocs.Type is ClassType oct) {
-                    // Y luego buscar el ClassSymbol de la clase anidada dentro de los miembros de la clase externa.
                     classSym = oct.Members.FindCurrent(_currentTypeBuilder.Name);
                 }
-            } else { // Es una clase de nivel superior (o la clase principal del programa)
+            } else { 
                 classSym = _symbolTable.SearchGlobal(_currentTypeBuilder.Name);
             }
 
             if (classSym is ClassSymbol cs && cs.Type is ClassType ct) {
                 return ct.Members;
             }
-            // Fallback si es la clase principal del programa y _programContext está disponible
             if (_programContext != null && _currentTypeBuilder.Name == _programContext.IDENT().GetText()){
                 var progClassSymbol = _symbolTable.SearchGlobal(_programContext.IDENT().GetText()) as ClassSymbol;
                 if (progClassSymbol != null && progClassSymbol.Type is ClassType pct) {
@@ -934,18 +845,17 @@ namespace Compiladores.CodeGen
         }
 
 
-        // ***** NUEVOS MÉTODOS HELPER *****
         private OpCode GetLdElemOpCode(Compiladores.Checker.Type elementType)
         {
             System.Type netElementType = ResolveNetType(elementType);
             if (netElementType == typeof(int)) return OpCodes.Ldelem_I4;
             if (netElementType == typeof(double)) return OpCodes.Ldelem_R8;
-            if (netElementType == typeof(char)) return OpCodes.Ldelem_U2; // Char se carga como unsigned 2 bytes -> int
-            if (netElementType == typeof(bool)) return OpCodes.Ldelem_I1; // Bool se carga como signed 1 byte -> int
-            if (!netElementType.IsValueType || netElementType.IsGenericParameter) return OpCodes.Ldelem_Ref; // Para strings y otros tipos referencia
+            if (netElementType == typeof(char)) return OpCodes.Ldelem_U2; 
+            if (netElementType == typeof(bool)) return OpCodes.Ldelem_I1; 
+            if (!netElementType.IsValueType || netElementType.IsGenericParameter) return OpCodes.Ldelem_Ref; 
 
             Console.Error.WriteLine($"CodeGen Warning (GetLdElemOpCode): No se encontró LDELEM específico para tipo {netElementType.FullName}. Usando Ldelem_Ref por defecto.");
-            return OpCodes.Ldelem_Ref; // Fallback genérico
+            return OpCodes.Ldelem_Ref; 
         }
 
         private OpCode GetStElemOpCode(Compiladores.Checker.Type elementType)
@@ -953,34 +863,20 @@ namespace Compiladores.CodeGen
             System.Type netElementType = ResolveNetType(elementType);
             if (netElementType == typeof(int)) return OpCodes.Stelem_I4;
             if (netElementType == typeof(double)) return OpCodes.Stelem_R8;
-            if (netElementType == typeof(char)) return OpCodes.Stelem_I2; // Char se almacena como 2 bytes
-            if (netElementType == typeof(bool)) return OpCodes.Stelem_I1; // Bool se almacena como 1 byte
+            if (netElementType == typeof(char)) return OpCodes.Stelem_I2; 
+            if (netElementType == typeof(bool)) return OpCodes.Stelem_I1; 
             if (!netElementType.IsValueType || netElementType.IsGenericParameter) return OpCodes.Stelem_Ref;
 
             Console.Error.WriteLine($"CodeGen Warning (GetStElemOpCode): No se encontró STELEM específico para tipo {netElementType.FullName}. Usando Stelem_Ref por defecto.");
             return OpCodes.Stelem_Ref;
         }
 
-
-        // ... (resto de los métodos de Visit* y helpers como HandleMethodCall, ResolveDesignatorToCallableSymbol, etc. sin cambios respecto a la última versión que te di)
-        // ... Asegúrate de que la lógica de HandleMethodCall, ResolveDesignatorToCallableSymbol, VisitExpr, VisitTerm, etc.,
-        // ... así como los métodos de control de flujo (VisitIfStatement, VisitWhileStatement) y otros literales
-        // ... permanezcan como estaban en la versión anterior que funcionaba con el error CS1503 corregido.
-        // ... Solo los métodos VisitDesignatorFactor, VisitDesignatorStatement y los nuevos GetLdElemOpCode/GetStElemOpCode se añaden/modifican aquí.
-
-        // Copia aquí el resto de los métodos de la clase MiniCSharpCodeGenerator
-        // que te proporcioné en la respuesta anterior y que no se han modificado
-        // en este paso. Esto incluye:
-        // HandleMethodCall, ResolveDesignatorToCallableSymbol, VisitExpr, VisitTerm,
-        // VisitCondition, VisitCondTerm, VisitCondFact, VisitIfStatement, VisitWhileStatement,
-        // VisitNewFactor (que ya modificamos para new arr[] y new Class()), etc.
-
         private void HandleMethodCall(MiniCSharpParser.DesignatorContext designatorCtx, MiniCSharpParser.ActParsContext actParsCtx)
         {
             MethodSymbol resolvedMethodSymbol = ResolveDesignatorToCallableSymbol(designatorCtx);
             MethodBase methodToCall = null; 
 
-            // ** INICIO: MODIFICACIÓN PARA 'len' **
+            // ***** INICIO: MODIFICACIÓN PARA 'len' *****
             if (resolvedMethodSymbol != null && resolvedMethodSymbol.Name == "len")
             {
                 if (_ilGenerator == null)
@@ -1013,7 +909,7 @@ namespace Compiladores.CodeGen
                 _ilGenerator.Emit(OpCodes.Conv_I4); // Ldlen devuelve native int, convertir a Int32 (int de C#)
                 return; // La función 'len' ya fue manejada.
             }
-            // ** FIN: MODIFICACIÓN PARA 'len' **
+            // ***** FIN: MODIFICACIÓN PARA 'len' *****
             // (Aquí continuaría la lógica original de HandleMethodCall para otros métodos)
 
 
@@ -1234,84 +1130,6 @@ namespace Compiladores.CodeGen
             Console.Error.WriteLine($"CodeGen Error (ResolveDesignatorToCallableSymbol): Complex designator for method call not fully supported: {designatorCtx.GetText()}");
             return null;
         }
-         private MethodSymbol ResolveDesignatorToCallableSymbol(MiniCSharpParser.DesignatorContext designatorCtx)
-        {
-            if (designatorCtx == null || designatorCtx.IDENT() == null || designatorCtx.IDENT().Length == 0)
-            {
-                Console.Error.WriteLine("CodeGen Error (ResolveDesignatorToCallableSymbol): Invalid designator context.");
-                return null;
-            }
-
-            if (designatorCtx.DOT().Length == 0 && designatorCtx.LBRACK().Length == 0)
-            {
-                string methodName = designatorCtx.IDENT(0).GetText();
-                Symbol symbol = _currentCodeGenScope.Find(methodName); 
-
-                if (symbol is MethodSymbol methodSymbol)
-                {
-                    return methodSymbol;
-                }
-                else if (symbol != null)
-                {
-                    //Console.Error.WriteLine($"CodeGen Info (ResolveDesignatorToCallableSymbol): Identifier '{methodName}' found but it is not a method (Kind: {symbol.Kind}). This might be a variable.");
-                    return null; // No es un método
-                }
-                Symbol globalSymbol = _symbolTable.SearchGlobal(methodName);
-                 if (globalSymbol is MethodSymbol globalMethodSymbol)
-                {
-                    return globalMethodSymbol;
-                }
-
-                //Console.Error.WriteLine($"CodeGen Info (ResolveDesignatorToCallableSymbol): Method '{methodName}' not found in current or global scope. This might be a variable.");
-                return null; // No encontrado o no es método
-            }
-
-            if (designatorCtx.DOT().Length > 0)
-            {
-                // Caso: IDENT(0).IDENT(1)
-                // IDENT(0) puede ser una clase (para llamada estática) o una instancia (para llamada de instancia)
-                string baseIdentifierName = designatorCtx.IDENT(0).GetText();
-                string memberMethodName = designatorCtx.IDENT(1).GetText(); 
-
-                Symbol baseSymbol = _currentCodeGenScope.Find(baseIdentifierName) ?? _symbolTable.SearchGlobal(baseIdentifierName);
-
-                if (baseSymbol is ClassSymbol classSymbol) // Ej: Math.Max()
-                {
-                    if (classSymbol.Type is ClassType classType) //
-                    {
-                        Symbol memberSymbol = classType.Members.FindCurrent(memberMethodName); 
-                        if (memberSymbol is MethodSymbol methodSymbol)
-                        {
-                            // TODO: Verificar si el método es estático, ya que se está llamando como Clase.Metodo()
-                            return methodSymbol;
-                        }
-                    }
-                }
-                else if (baseIdentifierName == "Console") 
-                {
-                    return null; // Deja que HandleMethodCall lo maneje por reflexión
-                }
-                else if (baseSymbol is VarSymbol varSym) // Ej: myObj.DoSomething()
-                {
-                     // Necesitamos el tipo de varSym para encontrar el método miembro
-                     if (varSym.Type is ClassType instanceClassType) //
-                     {
-                         Symbol memberSymbol = instanceClassType.Members.FindCurrent(memberMethodName);
-                         if (memberSymbol is MethodSymbol methodSymbol)
-                         {
-                             // TODO: Verificar si el método NO es estático
-                             return methodSymbol;
-                         }
-                     }
-                }
-                Console.Error.WriteLine($"CodeGen Error (ResolveDesignatorToCallableSymbol): Cannot resolve method '{memberMethodName}' on base '{baseIdentifierName}'. Base is not a known class or object with members.");
-                return null;
-            }
-            
-            // Otros casos complejos de designador (ej. array[idx].Method()) no están completamente soportados aquí.
-            Console.Error.WriteLine($"CodeGen Error (ResolveDesignatorToCallableSymbol): Complex designator for method call not fully supported: {designatorCtx.GetText()}");
-            return null;
-        }
         
         public override object VisitExpr(MiniCSharpParser.ExprContext context)
         {
@@ -1362,10 +1180,25 @@ namespace Compiladores.CodeGen
                         targetType = Compiladores.Checker.Type.Double;
                         if (currentLeftType == Compiladores.Checker.Type.Int) 
                         {
-                            LocalBuilder tempDouble = _ilGenerator.DeclareLocal(typeof(double));
-                            _ilGenerator.Emit(OpCodes.Stloc, tempDouble);    
-                            _ilGenerator.Emit(OpCodes.Conv_R8);              
-                            _ilGenerator.Emit(OpCodes.Ldloc, tempDouble);    
+                            // Esto es incorrecto para preservar el orden de los operandos.
+                            // El operando de la izquierda ya está en la pila. Debemos convertirlo si es necesario.
+                            // El operando derecho está en la pila ENCIMA del izquierdo.
+                            // Pila: left(int), right(double) -> Necesitamos: left(double), right(double)
+                            // O Pila: left(double), right(int) -> Necesitamos: left(double), right(double)
+                            
+                            // Si el derecho es int y el izquierdo es double, convertir derecho
+                            if (rightTermType == Compiladores.Checker.Type.Int)
+                            {
+                                _ilGenerator.Emit(OpCodes.Conv_R8);
+                            }
+                            // Si el izquierdo es int y el derecho es double, convertir izquierdo (más complejo)
+                            else if (currentLeftType == Compiladores.Checker.Type.Int && rightTermType == Compiladores.Checker.Type.Double)
+                            {
+                                LocalBuilder tempRightDouble = _ilGenerator.DeclareLocal(typeof(double));
+                                _ilGenerator.Emit(OpCodes.Stloc, tempRightDouble); // right(double) -> local
+                                _ilGenerator.Emit(OpCodes.Conv_R8);              // left(int) en pila -> left(double)
+                                _ilGenerator.Emit(OpCodes.Ldloc, tempRightDouble); // Cargar right(double) de nuevo
+                            }
                         }
                         else if (rightTermType == Compiladores.Checker.Type.Int) 
                         {
@@ -1381,15 +1214,21 @@ namespace Compiladores.CodeGen
                 else if (op == "+" && 
                     (currentLeftType == Compiladores.Checker.Type.String || rightTermType == Compiladores.Checker.Type.String))
                 {
-                    MethodInfo concatMethod = typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) });
-                    
-                    if (currentLeftType != Compiladores.Checker.Type.String) { 
-                        EmitToStringCoercion(currentLeftType); 
+                     // Pila: left, right. El checker ya determinó que el resultado es String.
+                     // El de la derecha está arriba. Si no es string, se convierte.
+                    if (rightTermType != Compiladores.Checker.Type.String) {
+                         EmitToStringCoercion(rightTermType, false); // Convierte el que está en la cima (right)
                     }
-                    if (rightTermType != Compiladores.Checker.Type.String) { 
-                        EmitToStringCoercion(rightTermType); 
+                    // Ahora el de la izquierda. Hay que guardarlo, convertir el de la izquierda, y luego recuperarlo.
+                    if (currentLeftType != Compiladores.Checker.Type.String) {
+                        LocalBuilder tempRightString = _ilGenerator.DeclareLocal(typeof(string));
+                        _ilGenerator.Emit(OpCodes.Stloc, tempRightString); // Guarda el string de la derecha (o convertido)
+                        // Ahora está el de la izquierda en la cima.
+                        EmitToStringCoercion(currentLeftType, false); // Convierte el de la izquierda
+                        _ilGenerator.Emit(OpCodes.Ldloc, tempRightString); // Recupera el string de la derecha
                     }
 
+                    MethodInfo concatMethod = typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) });
                     if (concatMethod != null) {
                          _ilGenerator.Emit(OpCodes.Call, concatMethod);
                          targetType = Compiladores.Checker.Type.String;
@@ -1417,28 +1256,38 @@ namespace Compiladores.CodeGen
             return null; 
         }
         
-        private void EmitToStringCoercion(Compiladores.Checker.Type typeToConvert) {
+        private void EmitToStringCoercion(Compiladores.Checker.Type typeToConvert, bool isAddressExpected) {
             System.Type netType = ResolveNetType(typeToConvert);
+            MethodInfo toStringMethod = null;
+
             if (netType.IsValueType) {
-                LocalBuilder tempVal = _ilGenerator.DeclareLocal(netType);
-                _ilGenerator.Emit(OpCodes.Stloc, tempVal); // Guardar valor
-                _ilGenerator.Emit(OpCodes.Ldloca_S, tempVal); // Cargar dirección del local
-                 MethodInfo toStringMethod = netType.GetMethod("ToString", System.Type.EmptyTypes);
-                 if (toStringMethod == null || toStringMethod.DeclaringType == typeof(object) || toStringMethod.DeclaringType == typeof(ValueType)) {
-                    // Si no hay un ToString específico o es el de Object/ValueType, boxear primero
-                     _ilGenerator.Emit(OpCodes.Box, netType); // Boxear (si ldloca no lo hizo implícitamente para callvirt)
-                     toStringMethod = typeof(object).GetMethod("ToString"); // Usar el de object
-                     _ilGenerator.Emit(OpCodes.Callvirt, toStringMethod);
-                 } else {
-                    // Si hay un ToString específico en el tipo valor (struct)
-                    _ilGenerator.Emit(OpCodes.Call, toStringMethod); // Llamar directamente
-                 }
+                // Si el valor está en la pila, lo guardamos en un local para poder tomar su dirección
+                // si el método ToString() no es virtual (es decir, es específico del tipo de valor).
+                // Si ToString() es virtual (heredado de object o ValueType), necesitamos boxearlo.
+                
+                toStringMethod = netType.GetMethod("ToString", System.Type.EmptyTypes);
 
-
+                if (toStringMethod != null && toStringMethod.DeclaringType == netType && !toStringMethod.IsVirtual) {
+                    // El tipo de valor tiene su propio ToString() no virtual.
+                    // Necesitamos la dirección del valor en la pila.
+                    LocalBuilder tempVal = _ilGenerator.DeclareLocal(netType);
+                    _ilGenerator.Emit(OpCodes.Stloc, tempVal);
+                    _ilGenerator.Emit(OpCodes.Ldloca_S, tempVal); // Carga la dirección
+                    _ilGenerator.Emit(OpCodes.Call, toStringMethod); // Llama al ToString() específico
+                } else {
+                    // No hay ToString() específico, o es virtual (como el de System.Object o System.ValueType).
+                    // Boxear el valor y llamar a ToString() virtual.
+                    _ilGenerator.Emit(OpCodes.Box, netType);
+                    toStringMethod = typeof(object).GetMethod("ToString");
+                    _ilGenerator.Emit(OpCodes.Callvirt, toStringMethod);
+                }
             } else if (netType == typeof(string)) {
-                // Ya es string, no hacer nada.
-            } else { 
-                MethodInfo toStringMethod = netType.GetMethod("ToString", System.Type.EmptyTypes) ?? typeof(object).GetMethod("ToString");
+                // Ya es string, no hacer nada. La pila ya tiene el string.
+            } else { // Es otro tipo de referencia
+                // Si el objeto es null, ToString() lanzará NullReferenceException. C# estándar lo hace.
+                // Opcionalmente, podríamos chequear null y emitir "null" o string vacío.
+                // Por ahora, comportamiento estándar:
+                toStringMethod = typeof(object).GetMethod("ToString"); // O netType.GetMethod("ToString", Type.EmptyTypes) si esperamos overrides
                 _ilGenerator.Emit(OpCodes.Callvirt, toStringMethod);
             }
         }
@@ -1477,16 +1326,17 @@ namespace Compiladores.CodeGen
                     if (currentLeftType == Compiladores.Checker.Type.Double || rightFactorType == Compiladores.Checker.Type.Double)
                     {
                         targetType = Compiladores.Checker.Type.Double;
-                        if (currentLeftType == Compiladores.Checker.Type.Int) 
+                        // Corrección similar a VisitExpr para la conversión de operandos a double
+                        if (rightFactorType == Compiladores.Checker.Type.Int) // Si el derecho (en la cima) es int
                         {
-                            LocalBuilder tempDouble = _ilGenerator.DeclareLocal(typeof(double));
-                            _ilGenerator.Emit(OpCodes.Stloc, tempDouble);    
-                            _ilGenerator.Emit(OpCodes.Conv_R8);              
-                            _ilGenerator.Emit(OpCodes.Ldloc, tempDouble);    
+                            _ilGenerator.Emit(OpCodes.Conv_R8); // Convertir el de la cima a double
                         }
-                        else if (rightFactorType == Compiladores.Checker.Type.Int) 
+                        else if (currentLeftType == Compiladores.Checker.Type.Int && rightFactorType == Compiladores.Checker.Type.Double) // Si el izquierdo es int y el derecho double
                         {
-                            _ilGenerator.Emit(OpCodes.Conv_R8); 
+                            LocalBuilder tempRightDouble = _ilGenerator.DeclareLocal(typeof(double));
+                            _ilGenerator.Emit(OpCodes.Stloc, tempRightDouble); // Guarda right(double)
+                            _ilGenerator.Emit(OpCodes.Conv_R8);              // Convierte left(int) a left(double)
+                            _ilGenerator.Emit(OpCodes.Ldloc, tempRightDouble); // Recarga right(double)
                         }
                     }
                     else 
@@ -1585,16 +1435,18 @@ namespace Compiladores.CodeGen
             System.Type netLeftType = ResolveNetType(leftType);
             System.Type netRightType = ResolveNetType(rightType);
 
-            if (netLeftType == typeof(double) && netRightType == typeof(int))
+             // Pila: left, right. Si left es int y right es double, convertir left.
+            if (netLeftType == typeof(int) && netRightType == typeof(double))
             {
-                _ilGenerator.Emit(OpCodes.Conv_R8);
+                LocalBuilder tempRightDouble = _ilGenerator.DeclareLocal(typeof(double));
+                _ilGenerator.Emit(OpCodes.Stloc, tempRightDouble); // Almacena right (double)
+                _ilGenerator.Emit(OpCodes.Conv_R8);              // Convierte left (int) en pila a double
+                _ilGenerator.Emit(OpCodes.Ldloc, tempRightDouble); // Carga right (double) de nuevo
             }
-            else if (netLeftType == typeof(int) && netRightType == typeof(double))
+            // Si left es double y right es int, convertir right.
+            else if (netLeftType == typeof(double) && netRightType == typeof(int))
             {
-                LocalBuilder tempDouble = _ilGenerator.DeclareLocal(typeof(double));
-                _ilGenerator.Emit(OpCodes.Stloc, tempDouble); 
-                _ilGenerator.Emit(OpCodes.Conv_R8);          
-                _ilGenerator.Emit(OpCodes.Ldloc, tempDouble); 
+                _ilGenerator.Emit(OpCodes.Conv_R8); // Convierte right (int) en la cima de la pila a double
             }
             
             string op = context.relop().GetText();
@@ -1603,9 +1455,9 @@ namespace Compiladores.CodeGen
                 case "==": _ilGenerator.Emit(OpCodes.Ceq); break;
                 case "!=": _ilGenerator.Emit(OpCodes.Ceq); _ilGenerator.Emit(OpCodes.Ldc_I4_0); _ilGenerator.Emit(OpCodes.Ceq); break;
                 case "<": _ilGenerator.Emit(OpCodes.Clt); break;
-                case "<=": _ilGenerator.Emit(OpCodes.Cgt); _ilGenerator.Emit(OpCodes.Ldc_I4_0); _ilGenerator.Emit(OpCodes.Ceq); break;
+                case "<=": _ilGenerator.Emit(OpCodes.Cgt); _ilGenerator.Emit(OpCodes.Ldc_I4_0); _ilGenerator.Emit(OpCodes.Ceq); break; // x <= y  es !(x > y)
                 case ">": _ilGenerator.Emit(OpCodes.Cgt); break;
-                case ">=": _ilGenerator.Emit(OpCodes.Clt); _ilGenerator.Emit(OpCodes.Ldc_I4_0); _ilGenerator.Emit(OpCodes.Ceq); break;
+                case ">=": _ilGenerator.Emit(OpCodes.Clt); _ilGenerator.Emit(OpCodes.Ldc_I4_0); _ilGenerator.Emit(OpCodes.Ceq); break; // x >= y es !(x < y)
                 default:
                     Console.Error.WriteLine($"CodeGen Error (VisitCondFact): Operador relacional desconocido '{op}'.");
                     if (leftType != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); 
@@ -1654,18 +1506,18 @@ namespace Compiladores.CodeGen
             System.Reflection.Emit.Label conditionLabel = _ilGenerator.DefineLabel();
             System.Reflection.Emit.Label endWhileLabel = _ilGenerator.DefineLabel();
 
-            _breakLabelStack.Push(endWhileLabel); // Para 'break' statements
+            _breakLabelStack.Push(endWhileLabel); 
 
             _ilGenerator.MarkLabel(conditionLabel);
-            Visit(context.condition()); // Deja bool en la pila
-            _ilGenerator.Emit(OpCodes.Brfalse, endWhileLabel);  // Si es false, salir del bucle
+            Visit(context.condition()); 
+            _ilGenerator.Emit(OpCodes.Brfalse, endWhileLabel);  
     
-            Visit(context.statement()); // Ejecutar cuerpo del bucle
+            Visit(context.statement()); 
     
-            _ilGenerator.Emit(OpCodes.Br, conditionLabel);  // Volver a la condición
+            _ilGenerator.Emit(OpCodes.Br, conditionLabel);  
 
             _ilGenerator.MarkLabel(endWhileLabel);
-            _breakLabelStack.Pop(); // Remover el target de break para este bucle
+            _breakLabelStack.Pop(); 
 
             return null;
         }
@@ -1687,7 +1539,7 @@ namespace Compiladores.CodeGen
 
             if (newMiniCSharpType.Kind == TypeKind.Array) 
             {
-                ArrayType arrayMiniCSharpType = (ArrayType)newMiniCSharpType; //
+                ArrayType arrayMiniCSharpType = (ArrayType)newMiniCSharpType; 
                 
                 Visit(context.expr()); 
                                        
@@ -1749,54 +1601,45 @@ namespace Compiladores.CodeGen
     if (_ilGenerator == null) { Console.Error.WriteLine("CodeGen Error (VisitForStatement): ILGenerator is null."); return null; }
 
     System.Reflection.Emit.Label conditionLabel = _ilGenerator.DefineLabel();
-    System.Reflection.Emit.Label incrementLabel = _ilGenerator.DefineLabel(); // Usada si hay statement de incremento
+    System.Reflection.Emit.Label incrementLabel = _ilGenerator.DefineLabel(); 
     System.Reflection.Emit.Label bodyLabel = _ilGenerator.DefineLabel();
     System.Reflection.Emit.Label endForLabel = _ilGenerator.DefineLabel();
 
-    _breakLabelStack.Push(endForLabel); // Para 'break' statements
+    _breakLabelStack.Push(endForLabel); 
 
-    // La gramática es: FOR LPAREN initExpr=expr? SEMI cond=condition? SEMI iterStmtRule=statement? RPAREN bodyStmtRule=statement
     var initExprCtx = context.expr();
     var conditionCtx = context.condition();
     
     MiniCSharpParser.StatementContext iterStatementCtx = null;
     MiniCSharpParser.StatementContext bodyStatementCtx = null;
 
-    // ANTLR agrupa los 'statement' que coinciden.
-    // statement() devuelve un array. Si hay dos (iterador y cuerpo), context.statement(0) es el iterador y context.statement(1) el cuerpo.
-    // Si solo hay uno (cuerpo), context.statement(0) es el cuerpo.
     var statementsInRule = context.statement();
-    if (statementsInRule.Length == 1) { // Solo el statement del cuerpo obligatorio
+    if (statementsInRule.Length == 1) { 
         bodyStatementCtx = statementsInRule[0];
-    } else if (statementsInRule.Length == 2) { // El statement opcional de iteración y el statement del cuerpo
-        iterStatementCtx = statementsInRule[0]; // El statement? dentro de los paréntesis
-        bodyStatementCtx = statementsInRule[1]; // El statement después de los paréntesis
+    } else if (statementsInRule.Length == 2) { 
+        iterStatementCtx = statementsInRule[0]; 
+        bodyStatementCtx = statementsInRule[1]; 
     } else if (statementsInRule.Length == 0 && context.children.LastOrDefault(c => c is MiniCSharpParser.StatementContext) is MiniCSharpParser.StatementContext lastChild) {
-        // Fallback si ANTLR no los agrupa en el array `statement()` como se espera para opcionales (poco probable con `?` en la regla)
-        bodyStatementCtx = lastChild; // Asumir que el último hijo Statement es el cuerpo
+        bodyStatementCtx = lastChild; 
     }
      else if (statementsInRule.Length == 0 ) {
-         // Esto no debería ocurrir si la gramática es `statement` (no opcional) para el cuerpo.
          Console.Error.WriteLine("CodeGen Error (VisitForStatement): No se encontró el statement del cuerpo para el bucle FOR.");
          _breakLabelStack.Pop();
          return null;
     }
 
-
-    // 1. Inicialización (expr?)
     if (initExprCtx != null)
     {
         Visit(initExprCtx);
-        Compiladores.Checker.Type initType = GetExpressionType(initExprCtx); //
+        Compiladores.Checker.Type initType = GetExpressionType(initExprCtx); 
         if (initType != Compiladores.Checker.Type.Void && initType != Compiladores.Checker.Type.Error)
         {
-            _ilGenerator.Emit(OpCodes.Pop); // Pop si la expresión de inicialización deja un valor no utilizado
+            _ilGenerator.Emit(OpCodes.Pop); 
         }
     }
 
-    _ilGenerator.Emit(OpCodes.Br, conditionLabel); // Saltar a la comprobación de condición primero
+    _ilGenerator.Emit(OpCodes.Br, conditionLabel); 
 
-    // 2. Cuerpo del bucle
     _ilGenerator.MarkLabel(bodyLabel);
     if (bodyStatementCtx != null)
     {
@@ -1804,29 +1647,23 @@ namespace Compiladores.CodeGen
     }
     else 
     {
-        // Si bodyStatementCtx es null aquí, hay un problema con la lógica de obtención de statements o la gramática.
         Console.Error.WriteLine("CodeGen Error (VisitForStatement): El contexto del cuerpo del bucle FOR es nulo.");
     }
 
-
-    // 3. Statement de incremento/iteración
     _ilGenerator.MarkLabel(incrementLabel);
     if (iterStatementCtx != null)
     {
-        Visit(iterStatementCtx); // Es un statement, maneja su propia pila
+        Visit(iterStatementCtx); 
     }
 
-    // 4. Comprobación de condición
     _ilGenerator.MarkLabel(conditionLabel);
     if (conditionCtx != null)
     {
-        Visit(conditionCtx); // Deja bool en la pila
-        _ilGenerator.Emit(OpCodes.Brfalse, endForLabel); // Si la condición es false, saltar al final
+        Visit(conditionCtx); 
+        _ilGenerator.Emit(OpCodes.Brfalse, endForLabel); 
     }
-    // Si la condición es true (o no hay condición), saltar al cuerpo
     _ilGenerator.Emit(OpCodes.Br, bodyLabel);
 
-    // 5. Fin del bucle
     _ilGenerator.MarkLabel(endForLabel);
     _breakLabelStack.Pop();
 
@@ -1839,11 +1676,10 @@ namespace Compiladores.CodeGen
     System.Reflection.Emit.Label endSwitchLabel = _ilGenerator.DefineLabel();
     _breakLabelStack.Push(endSwitchLabel);
 
-    Visit(context.expr()); // Evaluar expresión del switch, deja valor en la pila
-    Compiladores.Checker.Type switchExprType = GetExpressionType(context.expr()); //
-    System.Type netSwitchExprType = ResolveNetType(switchExprType); //
+    Visit(context.expr()); 
+    Compiladores.Checker.Type switchExprType = GetExpressionType(context.expr()); 
+    System.Type netSwitchExprType = ResolveNetType(switchExprType); 
 
-    // Almacenar el valor de la expresión del switch en una variable local
     LocalBuilder switchValueLocal = _ilGenerator.DeclareLocal(netSwitchExprType);
     _ilGenerator.Emit(OpCodes.Stloc, switchValueLocal);
 
@@ -1856,16 +1692,13 @@ namespace Compiladores.CodeGen
 
     System.Reflection.Emit.Label defaultTargetLabel = _ilGenerator.DefineLabel(); 
 
-    // Generar lógica de despacho (comparaciones y saltos)
     for (int i = 0; i < caseContexts.Length; i++)
     {
-        _ilGenerator.Emit(OpCodes.Ldloc, switchValueLocal); // Cargar el valor del switch
-        Visit(caseContexts[i].constant()); // Cargar el valor constante del case
-        // El checker debería asegurar que los tipos son compatibles para comparación (int o char)
-        _ilGenerator.Emit(OpCodes.Beq, caseTargetLabels[i]); // Si son iguales, saltar al target del case
+        _ilGenerator.Emit(OpCodes.Ldloc, switchValueLocal); 
+        Visit(caseContexts[i].constant()); 
+        _ilGenerator.Emit(OpCodes.Beq, caseTargetLabels[i]); 
     }
 
-    // Si ningún case coincide, saltar a default o al final del switch
     if (context.defaultCase() != null)
     {
         _ilGenerator.Emit(OpCodes.Br, defaultTargetLabel);
@@ -1875,23 +1708,17 @@ namespace Compiladores.CodeGen
         _ilGenerator.Emit(OpCodes.Br, endSwitchLabel);
     }
 
-    // Generar código para cada bloque case
     for (int i = 0; i < caseContexts.Length; i++)
     {
         _ilGenerator.MarkLabel(caseTargetLabels[i]);
-        Visit(caseContexts[i]); // Visitar statements dentro del case
-                                // El 'break' dentro de Visit(caseContexts[i]) saltará a endSwitchLabel
+        Visit(caseContexts[i]); 
     }
 
-    // Generar código para el bloque default (si existe)
     _ilGenerator.MarkLabel(defaultTargetLabel);
     if (context.defaultCase() != null)
     {
-        Visit(context.defaultCase()); // Visitar statements del default
+        Visit(context.defaultCase()); 
     }
-    // Si no hubo un caso default explícito y los cases anteriores no tuvieron break,
-    // la ejecución continuará aquí y luego al endSwitchLabel.
-
     _ilGenerator.MarkLabel(endSwitchLabel);
     _breakLabelStack.Pop();
     return null;
@@ -1906,7 +1733,6 @@ namespace Compiladores.CodeGen
             }
             else
             {
-                // Esto debería ser detectado por el analizador semántico.
                 Console.Error.WriteLine("CodeGen Error (VisitBreakStatement): No hay bucle o switch envolvente del que salir con break.");
             }
             return null;
@@ -1922,21 +1748,14 @@ namespace Compiladores.CodeGen
         public override object VisitEmptyStatement(MiniCSharpParser.EmptyStatementContext context) { return base.VisitEmptyStatement(context); }
         public override object VisitSwitchCase(MiniCSharpParser.SwitchCaseContext context)
         {
-            // Visitar los statements dentro del case.
-            // El comportamiento de fall-through es natural a menos que se encuentre un 'break'.
             foreach (var stmtCtx in context.statement())
             {
                 Visit(stmtCtx);
             }
-            // MiniCSharp, al igual que C#, requeriría un 'break' para evitar el fall-through explícito
-            // a menos que el case esté vacío. El 'break' es manejado por VisitBreakStatement.
-            // Si no hay break y el case no está vacío, en C# es un error.
-            // Aquí, si no hay break, simplemente se ejecutará el siguiente bloque de case si el IL lo permite (lo cual hace).
             return null;
         }
         public override object VisitDefaultCase(MiniCSharpParser.DefaultCaseContext context)
         {
-            // Visitar los statements dentro del case default.
             foreach (var stmtCtx in context.statement())
             {
                 Visit(stmtCtx);
