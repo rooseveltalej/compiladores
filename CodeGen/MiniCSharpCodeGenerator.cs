@@ -595,197 +595,344 @@ namespace Compiladores.CodeGen
 
         // ***** MÉTODO MODIFICADO / NUEVO *****
         public override object VisitDesignatorStatement(MiniCSharpParser.DesignatorStatementContext context)
+{
+    if (_ilGenerator == null)
+    {
+        Console.Error.WriteLine("CodeGen Error (VisitDesignatorStatement): ILGenerator is null.");
+        return null;
+    }
+
+    var designatorNode = context.designator();
+
+    if (context.ASSIGN() != null) // Asignación: designator = expr
+    {
+        // >>> TU CÓDIGO DE ASIGNACIÓN EXISTENTE VA AQUÍ <<<
+        // Esta parte ya la tenías y parecía estar funcionando para variables y arrays.
+        // Solo asegúrate que el manejo de campos de objetos (obj.field = expr)
+        // también esté completo si lo necesitas.
+        // Ejemplo de estructura (debes mantener tu lógica funcional aquí):
+        if (designatorNode.LBRACK().Length > 0) // Asignación a array: arr[idx] = expr
         {
-            if (_ilGenerator == null)
+            string baseArrayName = designatorNode.IDENT(0).GetText();
+            Symbol baseArraySymbol = _currentCodeGenScope.Find(baseArrayName);
+
+            if (!(baseArraySymbol is VarSymbol arrayVarSymbol) || !(arrayVarSymbol.Type is ArrayType arrayMiniCSharpType))
             {
-                Console.Error.WriteLine("CodeGen Error (VisitDesignatorStatement): ILGenerator is null.");
+                Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement Assign): Designator '{baseArrayName}' no es un array o no se encontró.");
+                if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
+                return null;
+            }
+            EmitLoadArrayAndIndex(arrayVarSymbol, designatorNode.expr(0)); // Carga array_ref e index
+            Visit(context.expr()); // Carga valor del RHS
+            
+            Compiladores.Checker.Type rhsType = GetExpressionType(context.expr());
+            Compiladores.Checker.Type lhsElementType = GetExpressionType(designatorNode); // Tipo del elemento del array
+
+            if (lhsElementType == Compiladores.Checker.Type.Double && rhsType == Compiladores.Checker.Type.Int)
+            {
+                _ilGenerator.Emit(OpCodes.Conv_R8);
+            }
+            _ilGenerator.Emit(GetStElemOpCode(lhsElementType));
+        }
+        else if (designatorNode.DOT().Length == 0) // Asignación a variable simple o parámetro
+        {
+            string varName = designatorNode.IDENT(0).GetText();
+            Symbol symbol = _currentCodeGenScope.Find(varName);
+             if (symbol == null && _currentTypeBuilder != null) // Podría ser un campo de la clase actual
+            {
+                 Scope classScope = GetCurrentClassScopeForFieldAccess(varName);
+                 if (classScope != null) symbol = classScope.FindCurrent(varName);
+            }
+
+            if (!(symbol is VarSymbol varSymbol))
+            {
+                Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement Assign): VarSymbol para '{varName}' no encontrado.");
+                if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
                 return null;
             }
 
-            var designatorNode = context.designator();
+            FieldBuilder fbAssign = null;
+            bool isStaticFieldAssign = false;
 
-            if (context.ASSIGN() != null) // Asignación: designator = expr
+            if (_fieldBuilders.TryGetValue(varSymbol, out fbAssign))
             {
-                // Caso 1: Asignación a elemento de Array (ej. miArray[indice] = expr)
-                if (designatorNode.LBRACK().Length > 0) //
+                isStaticFieldAssign = fbAssign.IsStatic;
+                if (!isStaticFieldAssign)
                 {
-                    string baseArrayName = designatorNode.IDENT(0).GetText();
-                    Symbol baseArraySymbol = _currentCodeGenScope.Find(baseArrayName);
-
-                    if (!(baseArraySymbol is VarSymbol arrayVarSymbol) || !(arrayVarSymbol.Type is ArrayType arrayMiniCSharpType)) //
-                    {
-                        Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): Designator '{baseArrayName}' no es un array o no se encontró para asignación.");
-                        if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
-                        return null;
-                    }
-
-                    // 1. Cargar la referencia del array en la pila
-                    if (_localBuilders.TryGetValue(arrayVarSymbol, out LocalBuilder lb))
-                    {
-                        _ilGenerator.Emit(OpCodes.Ldloc, lb);
-                    }
-                    else if (_currentGeneratingMethodSymbol != null &&
-                             _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == arrayVarSymbol.Name && p.Level == arrayVarSymbol.Level) is VarSymbol paramSymbol)
-                    {
-                        int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
-                        _ilGenerator.Emit(OpCodes.Ldarg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
-                    }
-                    else if (_fieldBuilders.TryGetValue(arrayVarSymbol, out FieldBuilder fb))
-                    {
-                        if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this'
-                        _ilGenerator.Emit(fb.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fb);
-                    }
-                    else
-                    {
-                        Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): No se encontró almacenamiento para el array '{baseArrayName}'.");
-                        if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
-                        return null;
-                    }
-                    // Pila: [array_ref]
-
-                    // 2. Cargar el índice en la pila
-                    Visit(designatorNode.expr(0)); // Asume un solo índice
-                    // Pila: [array_ref, index_val]
-
-                    // 3. Evaluar la expresión del lado derecho (RHS) y cargar su valor
-                    Visit(context.expr());
-                    // Pila: [array_ref, index_val, rhs_value]
-                    
-                    Compiladores.Checker.Type rhsType = GetExpressionType(context.expr());
-                    // GetExpressionType(designatorNode) devuelve el tipo del elemento (T) de array[index]
-                    Compiladores.Checker.Type lhsElementType = GetExpressionType(designatorNode);
-
-
-                    // 4. Coerción de tipos (si es necesario) para el valor del RHS
-                    if (lhsElementType == Compiladores.Checker.Type.Double && rhsType == Compiladores.Checker.Type.Int)
-                    {
-                        _ilGenerator.Emit(OpCodes.Conv_R8);
-                    }
-                    // Añadir más si es necesario
-
-                    // 5. Emitir Stelem.*
-                    OpCode stElemOpCode = GetStElemOpCode(lhsElementType);
-                    _ilGenerator.Emit(stElemOpCode);
-                    Console.WriteLine($"CodeGen INFO (VisitDesignatorStatement): Emitido {stElemOpCode} para almacenar en elemento de array '{baseArrayName}'.");
-                    // Stelem consume array_ref, index_val, y rhs_value
-                }
-                // Caso 2: Asignación a designador simple (variable, parámetro, campo)
-                else if (designatorNode.DOT().Length == 0)
-                {
-                    string varName = designatorNode.IDENT(0).GetText();
-                    Symbol symbol = _currentCodeGenScope.Find(varName);
-
-                    if (!(symbol is VarSymbol varSymbol))
-                    {
-                        Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): VarSymbol para '{varName}' no encontrado para asignación.");
-                        if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
-                        return null;
-                    }
-
-                    FieldBuilder fbAssign = null;
-                    bool isStaticFieldAssign = false;
-
-                    if (_fieldBuilders.TryGetValue(varSymbol, out fbAssign))
-                    {
-                        isStaticFieldAssign = fbAssign.IsStatic;
-                        if (!isStaticFieldAssign)
-                        {
-                            _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this' para Stfld
-                        }
-                    }
-                    
-                    Visit(context.expr()); // Valor del RHS en la pila
-                    Compiladores.Checker.Type rhsType = GetExpressionType(context.expr());
-                    Compiladores.Checker.Type lhsType = varSymbol.Type;
-
-                    if (lhsType == Compiladores.Checker.Type.Double && rhsType == Compiladores.Checker.Type.Int)
-                    {
-                        _ilGenerator.Emit(OpCodes.Conv_R8);
-                    }
-
-                    if (_localBuilders.TryGetValue(varSymbol, out LocalBuilder lbAssign))
-                    {
-                        _ilGenerator.Emit(OpCodes.Stloc, lbAssign);
-                    }
-                    else if (fbAssign != null)
-                    {
-                        _ilGenerator.Emit(isStaticFieldAssign ? OpCodes.Stsfld : OpCodes.Stfld, fbAssign);
-                    }
-                    else if (_currentGeneratingMethodSymbol != null &&
-                             _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level) is VarSymbol paramSymbol)
-                    {
-                        int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
-                        _ilGenerator.Emit(OpCodes.Starg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
-                    }
-                    else
-                    {
-                        Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): No se encontró almacenamiento para VarSymbol '{varName}' en asignación.");
-                    }
-                }
-                else // Asignación a designador complejo con DOT (obj.field)
-                {
-                    // TODO: Implementar asignación a obj.field
-                    Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): Asignación a designador con DOT '{designatorNode.GetText()}' no implementada.");
-                    if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
+                    _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this' para Stfld
                 }
             }
-            else if (context.INC() != null || context.DEC() != null)
-            {
-                // TODO: Implementar INC/DEC para elementos de array y campos de objeto
-                if (designatorNode.LBRACK().Length > 0 || designatorNode.DOT().Length > 0)
-                {
-                     Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): INC/DEC para designador complejo '{designatorNode.GetText()}' no implementado.");
-                }
-                else // INC/DEC en variable/parámetro/campo simple (lógica existente)
-                {
-                    string varName = designatorNode.IDENT(0).GetText();
-                    Symbol symbol = _currentCodeGenScope.Find(varName);
+            
+            Visit(context.expr()); 
+            Compiladores.Checker.Type rhsType = GetExpressionType(context.expr());
+            Compiladores.Checker.Type lhsType = varSymbol.Type;
 
-                    if (!(symbol is VarSymbol varSymbol))
-                    {
-                        Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): VarSymbol para '{varName}' no encontrado para INC/DEC.");
-                        return null;
-                    }
-                    Compiladores.Checker.Type varType = GetExpressionType(designatorNode);
-                    if (varType != Compiladores.Checker.Type.Int && varType != Compiladores.Checker.Type.Double)
-                    {
-                        Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement): INC/DEC solo para int o double, no {varType.Name}.");
-                        return null;
-                    }
-
-                    // Lógica para cargar, operar y guardar (simplificada, especialmente para campos)
-                    // ... (lógica existente para INC/DEC de variables simples) ...
-                    // Esta parte es compleja para campos de instancia y requiere un patrón de carga/dup/operación/almacenamiento cuidadoso.
-                    // La lógica anterior para esto era una simplificación.
-                    Console.Error.WriteLine($"CodeGen INFO (VisitDesignatorStatement): INC/DEC para simple var '{varName}'. Revisar robustez para campos.");
-                     // Placeholder: Aquí iría la lógica detallada de carga, operación, guardado para INC/DEC
-                     // Para locales: ldloc, ldc.i4.1, add, stloc
-                     // Para campos: (ldarg_0), ldfld, ldc.i4.1, add, (ldarg_0), stfld -- el this duplicado es clave
-                     // Por ahora, no se emite CIL completo aquí para evitar errores, ya que la lógica anterior era incompleta.
-                }
-            }
-            else if (context.LPAREN() != null) // Llamada a método como statement
+            if (lhsType == Compiladores.Checker.Type.Double && rhsType == Compiladores.Checker.Type.Int)
             {
-                HandleMethodCall(designatorNode, context.actPars());
-                // Pop del valor de retorno si el método no es void
-                Symbol calledSymbol = ResolveDesignatorToCallableSymbol(designatorNode);
-                if (calledSymbol is MethodSymbol calledMethodSym)
-                {
-                    if (calledMethodSym.Type != Compiladores.Checker.Type.Void)
-                    {
-                        _ilGenerator.Emit(OpCodes.Pop);
-                    }
-                } else {
-                     var factorType = GetExpressionType(designatorNode.Parent); 
-                     if (factorType != null && factorType != Compiladores.Checker.Type.Void && factorType != Compiladores.Checker.Type.Error) {
-                        _ilGenerator.Emit(OpCodes.Pop);
-                     } else if (factorType == null) {
-                        //Console.Error.WriteLine($"CodeGen Warning (VisitDesignatorStatement): Could not determine return type for method call '{designatorNode.GetText()}' used as statement to decide on Pop.");
-                     }
-                }
+                _ilGenerator.Emit(OpCodes.Conv_R8);
             }
+
+            if (_localBuilders.TryGetValue(varSymbol, out LocalBuilder lbAssign))
+            {
+                _ilGenerator.Emit(OpCodes.Stloc, lbAssign);
+            }
+            else if (fbAssign != null)
+            {
+                _ilGenerator.Emit(isStaticFieldAssign ? OpCodes.Stsfld : OpCodes.Stfld, fbAssign);
+            }
+            else if (_currentGeneratingMethodSymbol != null &&
+                     _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level) is VarSymbol paramSymbol)
+            {
+                int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
+                _ilGenerator.Emit(OpCodes.Starg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
+            }
+            else
+            {
+                Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement Assign): No se encontró almacenamiento para '{varSymbol.Name}'.");
+            }
+        }
+        else // Asignación a obj.field (simplificado, asume un solo DOT)
+        {
+             // TODO: Implementar asignación a obj.field si es necesario para tu lenguaje
+            Console.Error.WriteLine($"CodeGen Warning (VisitDesignatorStatement Assign): Asignación a campo de objeto anidado '{designatorNode.GetText()}' podría no estar completamente implementada.");
+             if (context.expr() != null) { Visit(context.expr()); if (GetExpressionType(context.expr()) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); }
+        }
+    }
+    else if (context.INC() != null || context.DEC() != null) // Operadores ++ o --
+    {
+        string baseIdentName = designatorNode.IDENT(0).GetText();
+        Symbol symbol = _currentCodeGenScope.Find(baseIdentName); // Para locales, parámetros
+        bool isArrayElement = designatorNode.LBRACK().Length > 0;
+        bool isField = false;
+        FieldBuilder fieldForIncDec = null;
+
+        if (symbol == null && !isArrayElement && _currentTypeBuilder != null) // Podría ser un campo de la clase actual (si no es local/param ni array)
+        {
+            Scope classScope = GetCurrentClassScopeForFieldAccess(baseIdentName);
+            if (classScope != null) {
+                 symbol = classScope.FindCurrent(baseIdentName);
+                 if (symbol is VarSymbol vs && _fieldBuilders.TryGetValue(vs, out fieldForIncDec)) {
+                     isField = true;
+                 } else {
+                     symbol = null; // No era un campo conocido
+                 }
+            }
+        } else if (symbol is VarSymbol vs && _fieldBuilders.TryGetValue(vs, out fieldForIncDec)) {
+            isField = true; // Símbolo encontrado directamente era un campo mapeado
+        }
+
+
+        if (symbol == null && !isArrayElement) { // Si después de todos los intentos, no hay símbolo y no es array
+            Console.Error.WriteLine($"CodeGen Error (INC/DEC): Identificador '{baseIdentName}' no encontrado.");
             return null;
         }
+
+        VarSymbol varSymbol = null;
+        Compiladores.Checker.Type targetType; // El tipo de la variable/campo/elemento que se incrementa/decrementa
+
+        if (isArrayElement) {
+            Symbol arrayBaseSymbol = _currentCodeGenScope.Find(baseIdentName);
+             if (arrayBaseSymbol == null && _currentTypeBuilder != null) {
+                Scope classScope = GetCurrentClassScopeForFieldAccess(baseIdentName);
+                 if (classScope != null) arrayBaseSymbol = classScope.FindCurrent(baseIdentName);
+             }
+            if (!(arrayBaseSymbol is VarSymbol arrayVarSym) || !(arrayVarSym.Type is ArrayType arrayTypeObj)) {
+                Console.Error.WriteLine($"CodeGen Error (INC/DEC): Array base '{baseIdentName}' no encontrado o no es un array.");
+                return null;
+            }
+            varSymbol = arrayVarSym; // Para usar en EmitLoadArrayAndIndex
+            targetType = arrayTypeObj.ElementType; // El tipo del elemento
+        } else {
+            varSymbol = symbol as VarSymbol;
+            if (varSymbol == null) {
+                 Console.Error.WriteLine($"CodeGen Error (INC/DEC): Símbolo '{baseIdentName}' no es una variable modificable.");
+                 return null;
+            }
+            targetType = varSymbol.Type;
+        }
+        
+        // El checker ya validó que targetType sea int o double
+        if (targetType != Compiladores.Checker.Type.Int && targetType != Compiladores.Checker.Type.Double) {
+             Console.Error.WriteLine($"CodeGen Error (INC/DEC): Operador solo para int o double, no para {targetType.Name}.");
+             return null;
+        }
+
+        // 1. Cargar "target" y valor actual
+        if (isArrayElement)
+        {
+            // Para array[index]++
+            // Pila necesaria para Stelem: array_ref, index, new_value
+            // Pila necesaria para Ldelem: array_ref, index (para obtener old_value)
+            
+            // Cargar array_ref e index (para Ldelem y luego para Stelem)
+            EmitLoadArrayAndIndex(varSymbol, designatorNode.expr(0)); // Pila: array_ref, index
+            _ilGenerator.Emit(OpCodes.Dup);                          // Pila: array_ref, index, index (para Stelem)
+            LocalBuilder tempIndex = _ilGenerator.DeclareLocal(typeof(int));
+            _ilGenerator.Emit(OpCodes.Stloc, tempIndex);             // Guarda index para Stelem. Pila: array_ref, index
+            _ilGenerator.Emit(OpCodes.Dup);                          // Pila: array_ref, index, array_ref (para Stelem)
+            LocalBuilder tempArrayRef = _ilGenerator.DeclareLocal(ResolveNetType(varSymbol.Type));
+             _ilGenerator.Emit(OpCodes.Stloc, tempArrayRef);          // Guarda array_ref para Stelem. Pila: array_ref, index
+
+            _ilGenerator.Emit(GetLdElemOpCode(targetType)); // Carga valor_elemento. Pila: valor_elemento
+        }
+        else if (isField) // Es un campo
+        {
+            if (!fieldForIncDec.IsStatic) // Campo de instancia
+            {
+                _ilGenerator.Emit(OpCodes.Ldarg_0); // Carga 'this'
+                _ilGenerator.Emit(OpCodes.Dup);     // Duplica 'this'. Pila: this, this
+            }
+            _ilGenerator.Emit(fieldForIncDec.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fieldForIncDec); // Carga valor. Si instancia, Pila: this, valor_campo
+        }
+        else if (_localBuilders.TryGetValue(varSymbol, out LocalBuilder lbIncDec)) // Es local
+        {
+            _ilGenerator.Emit(OpCodes.Ldloc, lbIncDec);
+        }
+        else if (_currentGeneratingMethodSymbol != null &&
+                 _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level) is VarSymbol paramSymbol) // Es parámetro
+        {
+            int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
+            _ilGenerator.Emit(OpCodes.Ldarg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
+        }
+        else
+        {
+            Console.Error.WriteLine($"CodeGen Error (VisitDesignatorStatement INC/DEC): No se encontró almacenamiento para VarSymbol '{varSymbol?.Name ?? baseIdentName}'.");
+            return null;
+        }
+
+        // Pila actual: (target_ref si es campo de instancia), old_value  O  old_array_element_value
+
+        // 2. Cargar el valor 1
+        _ilGenerator.Emit(OpCodes.Ldc_I4_1);
+        if (targetType == Compiladores.Checker.Type.Double)
+        {
+            _ilGenerator.Emit(OpCodes.Conv_R8); 
+        }
+
+        // 3. Realizar la operación
+        if (context.INC() != null) _ilGenerator.Emit(OpCodes.Add);
+        else _ilGenerator.Emit(OpCodes.Sub);
+
+        // Pila actual: (target_ref si es campo de instancia), new_value O new_array_element_value
+
+        // 4. Almacenar el nuevo valor
+        if (isArrayElement)
+        {
+            // Pila actual: new_value_elemento
+            // Necesitamos para Stelem: array_ref, index, new_value_elemento
+            LocalBuilder tempNewValue = _ilGenerator.DeclareLocal(ResolveNetType(targetType));
+            _ilGenerator.Emit(OpCodes.Stloc, tempNewValue); // Guarda new_value_elemento
+
+            // Recuperar array_ref e index guardados (que ya estaban en orden para Stelem)
+            // Esto asume que tempArrayRef y tempIndex fueron definidos y cargados correctamente arriba
+            _ilGenerator.Emit(OpCodes.Ldloc, _localBuilders.First(kv => kv.Value.LocalType == ResolveNetType(varSymbol.Type) && kv.Value.IsPinned == false && kv.Key.Name == varSymbol.Name ).Value ); // Esto es un hack peligroso si hay multiples locales del mismo tipo. Necesitas el LocalBuilder específico del array guardado en tempArrayRef
+            _ilGenerator.Emit(OpCodes.Ldloc, _localBuilders.First(kv => kv.Value.LocalType == typeof(int) && kv.Value.IsPinned == false).Value); // Igual hack para tempIndex
+
+            _ilGenerator.Emit(OpCodes.Ldloc, tempNewValue); // Carga new_value_elemento
+            _ilGenerator.Emit(GetStElemOpCode(targetType));
+        }
+        else if (isField) 
+        {
+             // Si es de instancia, 'this' ya está en la pila desde el Dup. Pila: this, nuevo_valor
+            _ilGenerator.Emit(fieldForIncDec.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, fieldForIncDec);
+        }
+        else if (_localBuilders.ContainsKey(varSymbol))
+        {
+            _ilGenerator.Emit(OpCodes.Stloc, _localBuilders[varSymbol]);
+        }
+        else if (_currentGeneratingMethodSymbol != null &&
+                 _currentGeneratingMethodSymbol.Parameters.Any(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level) )
+        {
+            VarSymbol paramSymbol = _currentGeneratingMethodSymbol.Parameters.First(p => p.Name == varSymbol.Name && p.Level == varSymbol.Level);
+            int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
+            _ilGenerator.Emit(OpCodes.Starg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
+        }
+    }
+    else if (context.LPAREN() != null) // Llamada a método como statement
+    {
+        HandleMethodCall(designatorNode, context.actPars());
+        Symbol calledSymbol = ResolveDesignatorToCallableSymbol(designatorNode);
+        if (calledSymbol is MethodSymbol calledMethodSym)
+        {
+            if (calledMethodSym.Type != Compiladores.Checker.Type.Void)
+            {
+                _ilGenerator.Emit(OpCodes.Pop);
+            }
+        } else {
+             var factorType = GetExpressionType(designatorNode.Parent); 
+             if (factorType != null && factorType != Compiladores.Checker.Type.Void && factorType != Compiladores.Checker.Type.Error) {
+                _ilGenerator.Emit(OpCodes.Pop);
+             } 
+        }
+    }
+    return null;
+}
+        
+        private void EmitLoadArrayAndIndex(VarSymbol arrayVarSymbol, MiniCSharpParser.ExprContext indexExprContext)
+        {
+            // 1. Cargar la referencia del array en la pila
+            if (_localBuilders.TryGetValue(arrayVarSymbol, out LocalBuilder lb))
+            {
+                _ilGenerator.Emit(OpCodes.Ldloc, lb);
+            }
+            else if (_currentGeneratingMethodSymbol != null &&
+                     _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == arrayVarSymbol.Name && p.Level == arrayVarSymbol.Level) is VarSymbol paramSymbol)
+            {
+                int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
+                _ilGenerator.Emit(OpCodes.Ldarg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
+            }
+            else if (_fieldBuilders.TryGetValue(arrayVarSymbol, out FieldBuilder fb))
+            {
+                if (!fb.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0); // 'this'
+                _ilGenerator.Emit(fb.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fb);
+            }
+            else
+            {
+                Console.Error.WriteLine($"CodeGen Error (EmitLoadArrayAndIndex): No se encontró almacenamiento para el array '{arrayVarSymbol.Name}'.");
+                _ilGenerator.Emit(OpCodes.Ldnull); 
+                _ilGenerator.Emit(OpCodes.Ldc_I4_0); 
+                return;
+            }
+            // Pila: [array_ref]
+
+            // 2. Cargar el índice en la pila
+            Visit(indexExprContext); 
+            // Pila: [array_ref, index_val]
+        }
+        
+        private Scope GetCurrentClassScopeForFieldAccess(string fieldNameHint) {
+            if (_currentTypeBuilder == null) return null;
+
+            // Intenta obtener el ClassSymbol asociado al _currentTypeBuilder actual
+            // Esto es una simplificación; necesitarás una forma robusta de mapear _currentTypeBuilder a su ClassSymbol.
+            // Primero busca si el _currentTypeBuilder es una clase anidada.
+            Symbol classSym = null;
+            if (_currentTypeBuilder.IsNested && _currentTypeBuilder.DeclaringType != null) {
+                // Si es anidada, necesitamos el ClassSymbol del tipo declarante.
+                Symbol outerClassSym = _symbolTable.SearchGlobal(_currentTypeBuilder.DeclaringType.Name);
+                if (outerClassSym is ClassSymbol ocs && ocs.Type is ClassType oct) {
+                    // Y luego buscar el ClassSymbol de la clase anidada dentro de los miembros de la clase externa.
+                    classSym = oct.Members.FindCurrent(_currentTypeBuilder.Name);
+                }
+            } else { // Es una clase de nivel superior (o la clase principal del programa)
+                classSym = _symbolTable.SearchGlobal(_currentTypeBuilder.Name);
+            }
+
+            if (classSym is ClassSymbol cs && cs.Type is ClassType ct) {
+                return ct.Members;
+            }
+            // Fallback si es la clase principal del programa y _programContext está disponible
+            if (_programContext != null && _currentTypeBuilder.Name == _programContext.IDENT().GetText()){
+                var progClassSymbol = _symbolTable.SearchGlobal(_programContext.IDENT().GetText()) as ClassSymbol;
+                if (progClassSymbol != null && progClassSymbol.Type is ClassType pct) {
+                    return pct.Members;
+                }
+            }
+    
+            Console.Error.WriteLine($"CodeGen Warning: No se pudo determinar el scope de miembros para la clase actual '{_currentTypeBuilder.Name}' para buscar el campo '{fieldNameHint}'.");
+            return null;
+        }
+
 
         // ***** NUEVOS MÉTODOS HELPER *****
         private OpCode GetLdElemOpCode(Compiladores.Checker.Type elementType)

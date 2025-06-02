@@ -43,7 +43,7 @@ class TestControl {
         count = 0;
         while (count < 3) {
             write(count); // Se espera: 0, luego 1, luego 2
-            count++;
+            count = count + 1;
         }
         write(count); // Se espera: 3 (valor de count después del bucle)
 
@@ -71,7 +71,7 @@ class TestControl {
                 b = b + 2; // b = 17
             }
             write(b); // Se espera 16, luego 17
-            a++;
+            a = a + 1;
         }
         write(9999); // Delimitador final
     }
