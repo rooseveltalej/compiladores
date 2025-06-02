@@ -1,0 +1,92 @@
+// Archivo: TestIncDec.mcs
+
+class TestIncDec {
+    int staticField; // Para probar con campos estáticos
+
+    void Main() {
+        int localA;
+        int localB;
+        int count;
+        int[] arr;
+
+        write(10000); // Delimitador de inicio de pruebas INC/DEC
+
+        // 1. Prueba con variables locales
+        localA = 5;
+        localA++; // localA debería ser 6
+        write(localA); // Salida esperada: 6
+
+        localB = 10;
+        localB--; // localB debería ser 9
+        write(localB); // Salida esperada: 9
+
+        write(10001); // Delimitador
+
+        // 2. Prueba en bucle while
+        count = 0;
+        while (count < 3) {
+            write(count); // Salida esperada: 0, 1, 2
+            count++;
+        }
+        write(count); // Salida esperada: 3 (después del bucle)
+
+        write(10002); // Delimitador
+
+        // 3. Prueba en bucle for (simulado con while, ya que `for` usa `++` implícitamente)
+        //    Si tu `for` ya está implementado y usa `++` o `--` para su iterador,
+        //    sería una buena prueba también.
+        //    Aquí un ejemplo de cómo un `for(i=0; i<2; i++)` podría lucir con `while`:
+        localA = 0;
+        while (localA < 2) {
+            write(500 + localA); // Salida esperada: 500, 501
+            localA++;
+        }
+        write(localA); // Salida esperada: 2
+
+        write(10003); // Delimitador
+
+        // 4. Prueba con campos estáticos de la clase
+        //    (Asumiendo que tu lenguaje permite que la clase principal tenga campos estáticos
+        //     y que se pueden acceder directamente dentro de Main si Main es estático,
+        //     o a través de `TestIncDec.staticField` si es necesario y soportado)
+        //    Si Main no es estático, necesitarías una instancia o un campo estático accesible.
+        //    Por simplicidad, asumiré que `staticField` es accesible aquí.
+        
+        staticField = 100;
+        staticField++; // staticField debería ser 101
+        write(staticField); // Salida esperada: 101
+
+        staticField--; 
+        staticField--; // staticField debería ser 99
+        write(staticField); // Salida esperada: 99
+        
+        write(10004); // Delimitador
+
+        // 5. Prueba con elementos de array
+        arr = new int[3];
+        arr[0] = 10;
+        arr[1] = 20;
+        arr[2] = 30;
+
+        arr[0]++; // arr[0] debería ser 11
+        write(arr[0]); // Salida esperada: 11
+
+        arr[1]--; // arr[1] debería ser 19
+        write(arr[1]); // Salida esperada: 19
+        
+        count = 2; // Usando una variable como índice
+        arr[count]++; // arr[2] debería ser 31
+        write(arr[count]); // Salida esperada: 31
+
+        // Prueba dentro de un bucle
+        count = 0;
+        while(count < 3){
+            arr[count]++; // Incrementa cada elemento: 12, 20, 32
+            write(arr[count]);
+            count++;
+        }
+        // Salida esperada del bucle: 12, 20, 32 (después de ser incrementados)
+
+        write(19999); // Delimitador de fin de pruebas INC/DEC
+    }
+}

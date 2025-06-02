@@ -1,9 +1,9 @@
 class TestReturnProgram
 {
     // Método que devuelve un valor (int)
-    int CalculateSum(int a, int b)
+    float CalculateSum(float a, float b)
     {
-        int result;
+        float result;
         result = a + b;
         return result; // RETURN con expr
     }
@@ -23,9 +23,9 @@ class TestReturnProgram
     // Método principal para probar los otros métodos
     void Main()
     {
-        int sumResult;
-        int testVal1;
-        int testVal2;
+        float sumResult;
+        float testVal1;
+        float testVal2;
 
         testVal1 = 5;
         testVal2 = 7;

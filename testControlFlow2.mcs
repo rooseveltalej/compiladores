@@ -14,7 +14,7 @@ class Program
         // Prueba de FOR
         write("Iniciando bucle FOR (Contador General de 0 a 2):");
         contadorGeneral = 0; // Inicialización fuera del for
-        for ( ; contadorGeneral < 3; contadorGeneral = contadorGeneral +1 ; ) // Inicializador vacío, iterador es un statement
+        for (contadorGeneral ; contadorGeneral < 3; contadorGeneral = contadorGeneral +1 ; ) // Inicializador vacío, iterador es un statement
         {
             write("  Iteración FOR, Contador General: ");
             write(contadorGeneral);

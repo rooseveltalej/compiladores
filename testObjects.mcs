@@ -1,6 +1,7 @@
 // testObjects.mcs
 // testObjects.mcs
 class TestObjects { // Esta es la clase que coincide con la regla 'program'
+
     class Point {   // Point es ahora una CLASE ANIDADA
         int x;
         int y;
@@ -14,7 +15,5 @@ class TestObjects { // Esta es la clase que coincide con la regla 'program'
         write("Probando creacion de objeto localP...");
         localP = new Point(); 
         write("localP creado.");
-
-        // ... etc ...
     }
 }

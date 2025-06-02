@@ -1,0 +1,75 @@
+﻿class TestIncDecSimple {
+
+    void Main() {
+        int localA;
+        int i; 
+        int[] arr;
+
+        write(30000); // Delimitador de inicio de pruebas INC/DEC Simple
+
+        // 1. Incremento en bucle while (variable local)
+        localA = 0;
+        write(30001); 
+        while (localA < 3) {
+            write(localA); // Salida esperada: 0, 1, 2
+            localA++;
+        }
+        write(localA); // Salida esperada: 3
+
+        // 2. Decremento en bucle while (variable local)
+        localA = 3;
+        write(30002); 
+        while (localA > 0) {
+            localA--;
+            write(localA); // Salida esperada: 2, 1, 0
+        }
+        write(localA); // Salida esperada: 0 
+
+        // 3. Simulación de "for" con incremento (variable local)
+        //    for (i = 5; i < 8; i++)
+        write(30003); 
+        i = 5;
+        while (i < 8) {
+            write(i); // Salida esperada: 5, 6, 7
+            i++;
+        }
+        write(i); // Salida esperada: 8
+
+        // 4. Simulación de "for" con decremento (variable local)
+        //    for (i = 2; i > -1; i--)
+        write(30004); 
+        i = 2;
+        while (i > -1) { // Para que itere con i=2, i=1, i=0
+            write(i);   // Salida esperada: 2, 1, 0
+            i--;
+        }
+        write(i); // Salida esperada: -1
+
+
+        // 5. Elementos de array en bucles
+        write(30005); 
+        arr = new int[3]; // Crea un array de 3 enteros (inicializados a 0 por defecto si tu 'new' lo hace)
+        // Asignamos valores iniciales para claridad de la prueba
+        arr[0] = 10;
+        arr[1] = 20;
+        arr[2] = 30;
+
+        i = 0;
+        while (i < 3) {
+            arr[i]++;       // Incrementa el elemento actual del array
+            write(arr[i]);  // Salida esperada: 11, 21, 31
+            i++;
+        }
+        
+        write(30006); // Otro delimitador para la siguiente prueba de array
+        i = 0;
+        while (i < 3) {
+            // Ahora arr[0]=11, arr[1]=21, arr[2]=31
+            arr[i]--;       // Decrementa el elemento actual
+            write(arr[i]);  // Salida esperada: 10, 20, 30
+            i++;
+        }
+
+        write(39999); // Delimitador de fin de pruebas
+    }
+}
