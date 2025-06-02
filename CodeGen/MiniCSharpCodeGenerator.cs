@@ -13,23 +13,28 @@ namespace Compiladores.CodeGen
 {
     public class MiniCSharpCodeGenerator : MiniCSharpParserBaseVisitor<object>
     {
-        private readonly TablaSimbolos _symbolTable;
-        private readonly string _assemblyNameBase;
-        private MiniCSharpParser.ProgramContext _programContext;
-        private MethodSymbol _currentGeneratingMethodSymbol = null;
+        private readonly TablaSimbolos _symbolTable; //
+        private readonly string _assemblyNameBase; //
+        private MiniCSharpParser.ProgramContext _programContext; //
+        private MethodSymbol _currentGeneratingMethodSymbol = null; //
 
-        private AssemblyBuilder _assemblyBuilder;
-        private ModuleBuilder _moduleBuilder;
-        private TypeBuilder _currentTypeBuilder;
-        private MethodBuilder _currentMethodBuilder;
-        private ILGenerator _ilGenerator;
+        private AssemblyBuilder _assemblyBuilder; //
+        private ModuleBuilder _moduleBuilder; //
+        private TypeBuilder _currentTypeBuilder; //
+        private MethodBuilder _currentMethodBuilder; //
+        private ILGenerator _ilGenerator; //
 
-        private Dictionary<Symbol, FieldBuilder> _fieldBuilders = new Dictionary<Symbol, FieldBuilder>();
-        private Dictionary<Symbol, MethodBuilder> _methodBuilders = new Dictionary<Symbol, MethodBuilder>();
-        private Dictionary<Symbol, LocalBuilder> _localBuilders = new Dictionary<Symbol, LocalBuilder>();
-        private Dictionary<ClassSymbol, TypeBuilder> _definedTypes = new Dictionary<ClassSymbol, TypeBuilder>();
+        private Dictionary<Symbol, FieldBuilder> _fieldBuilders = new Dictionary<Symbol, FieldBuilder>(); //
+        private Dictionary<Symbol, MethodBuilder> _methodBuilders = new Dictionary<Symbol, MethodBuilder>(); //
+        private Dictionary<Symbol, LocalBuilder> _localBuilders = new Dictionary<Symbol, LocalBuilder>(); //
+        private Dictionary<ClassSymbol, TypeBuilder> _definedTypes = new Dictionary<ClassSymbol, TypeBuilder>(); //
 
-        private Scope _currentCodeGenScope;
+        private Scope _currentCodeGenScope; //
+        
+
+        // NUEVO: Stack para manejar los targets de los 'break' statements
+        private Stack<System.Reflection.Emit.Label> _breakLabelStack = new Stack<System.Reflection.Emit.Label>();
+
 
         public Dictionary<IParseTree, Compiladores.Checker.Type> ExpressionTypes { get; }
 
@@ -96,110 +101,110 @@ namespace Compiladores.CodeGen
 
         public override object VisitProgram(MiniCSharpParser.ProgramContext context)
         {
-            _symbolTable.SetCurrentScopeTo(_symbolTable.GetGlobalScope(), _symbolTable.GetGlobalScopeLevel());
-            _currentCodeGenScope = _symbolTable.GetGlobalScope();
-            string className = context.IDENT().GetText();
-            ClassSymbol progClassSymbol = _symbolTable.SearchGlobal(className) as ClassSymbol;
-            if (progClassSymbol == null) { Console.Error.WriteLine($"CodeGen Error: No ClassSymbol para '{className}'."); return null; }
+            _symbolTable.SetCurrentScopeTo(_symbolTable.GetGlobalScope(), _symbolTable.GetGlobalScopeLevel()); //
+            _currentCodeGenScope = _symbolTable.GetGlobalScope(); //
+            string className = context.IDENT().GetText(); //
+            ClassSymbol progClassSymbol = _symbolTable.SearchGlobal(className) as ClassSymbol; //
+            if (progClassSymbol == null) { Console.Error.WriteLine($"CodeGen Error: No ClassSymbol para '{className}'."); return null; } //
             
-            _currentTypeBuilder = _moduleBuilder.DefineType(className, TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit, typeof(object));
-            if (!_definedTypes.TryAdd(progClassSymbol, _currentTypeBuilder)) { _definedTypes[progClassSymbol] = _currentTypeBuilder; }
+            _currentTypeBuilder = _moduleBuilder.DefineType(className, TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit, typeof(object)); //
+            if (!_definedTypes.TryAdd(progClassSymbol, _currentTypeBuilder)) { _definedTypes[progClassSymbol] = _currentTypeBuilder; } //
             
-            Scope classScope = (progClassSymbol.Type as ClassType)?.Members; //
-            if (classScope == null) { Console.Error.WriteLine($"CodeGen Error: ClassSymbol '{className}' no tiene Members."); return null; }
+            Scope classScope = (progClassSymbol.Type as ClassType)?.Members; 
+            if (classScope == null) { Console.Error.WriteLine($"CodeGen Error: ClassSymbol '{className}' no tiene Members."); return null; } //
             
-            Scope outerScope = _currentCodeGenScope;
-            _currentCodeGenScope = classScope;
+            Scope outerScope = _currentCodeGenScope; //
+            _currentCodeGenScope = classScope; //
             
-            foreach (var varDeclContext in context.varDecl()) Visit(varDeclContext);
-            foreach (var classDeclContext in context.classDecl()) Visit(classDeclContext); 
-            foreach (var methodDeclContext in context.methodDecl()) Visit(methodDeclContext);
+            foreach (var varDeclContext in context.varDecl()) Visit(varDeclContext); //
+            foreach (var classDeclContext in context.classDecl()) Visit(classDeclContext);  //
+            foreach (var methodDeclContext in context.methodDecl()) Visit(methodDeclContext); //
             
-            _currentCodeGenScope = outerScope;
+            _currentCodeGenScope = outerScope; //
             
-            var createdType = _currentTypeBuilder.CreateType();
-            if (createdType == null)
+            var createdType = _currentTypeBuilder.CreateType(); //
+            if (createdType == null) //
             {
-                Console.Error.WriteLine($"CodeGen Error: Falló la creación del tipo para la clase principal '{className}'.");
+                Console.Error.WriteLine($"CodeGen Error: Falló la creación del tipo para la clase principal '{className}'."); //
             }
-            return null;
+            return null; //
         }
         
         public override object VisitClassDecl(MiniCSharpParser.ClassDeclContext context)
         {
-            string className = context.IDENT().GetText();
-            ClassSymbol classSymbol = _currentCodeGenScope.FindCurrent(className) as ClassSymbol;
-            if (classSymbol == null) { Console.Error.WriteLine($"CodeGen Error: No ClassSymbol para clase anidada '{className}' en scope '{_currentTypeBuilder?.Name}'."); return null; }
+            string className = context.IDENT().GetText(); //
+            ClassSymbol classSymbol = _currentCodeGenScope.FindCurrent(className) as ClassSymbol; //
+            if (classSymbol == null) { Console.Error.WriteLine($"CodeGen Error: No ClassSymbol para clase anidada '{className}' en scope '{_currentTypeBuilder?.Name}'."); return null; } //
             
-            TypeBuilder outerTypeBuilder = _currentTypeBuilder;
-            _currentTypeBuilder = outerTypeBuilder.DefineNestedType(className, TypeAttributes.NestedPublic | TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed, typeof(object));
-            if (!_definedTypes.TryAdd(classSymbol, _currentTypeBuilder)) { _definedTypes[classSymbol] = _currentTypeBuilder; }
+            TypeBuilder outerTypeBuilder = _currentTypeBuilder; //
+            _currentTypeBuilder = outerTypeBuilder.DefineNestedType(className, TypeAttributes.NestedPublic | TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed, typeof(object)); //
+            if (!_definedTypes.TryAdd(classSymbol, _currentTypeBuilder)) { _definedTypes[classSymbol] = _currentTypeBuilder; } //
             
-            Scope outerScope = _currentCodeGenScope;
-            _currentCodeGenScope = (classSymbol.Type as ClassType)?.Members; //
-            if (_currentCodeGenScope == null) { Console.Error.WriteLine($"CodeGen Error: ClassSymbol anidado '{className}' no tiene Members."); _currentTypeBuilder = outerTypeBuilder; return null; }
+            Scope outerScope = _currentCodeGenScope; //
+            _currentCodeGenScope = (classSymbol.Type as ClassType)?.Members; 
+            if (_currentCodeGenScope == null) { Console.Error.WriteLine($"CodeGen Error: ClassSymbol anidado '{className}' no tiene Members."); _currentTypeBuilder = outerTypeBuilder; return null; } //
             
-            foreach (var varDeclContext in context.varDecl()) Visit(varDeclContext);
+            foreach (var varDeclContext in context.varDecl()) Visit(varDeclContext); //
 
-            _currentCodeGenScope = outerScope;
-            var createdNestedType = _currentTypeBuilder.CreateType();
-             if (createdNestedType == null)
+            _currentCodeGenScope = outerScope; //
+            var createdNestedType = _currentTypeBuilder.CreateType(); //
+            if (createdNestedType == null) //
             {
-                Console.Error.WriteLine($"CodeGen Error: Falló la creación del tipo para la clase anidada '{className}'.");
+                Console.Error.WriteLine($"CodeGen Error: Falló la creación del tipo para la clase anidada '{className}'."); //
             }
-            _currentTypeBuilder = outerTypeBuilder;
-            return null;
+            _currentTypeBuilder = outerTypeBuilder; //
+            return null; //
         }
 
         public override object VisitVarDecl(MiniCSharpParser.VarDeclContext context)
         {
-            Compiladores.Checker.Type varMiniCSharpType = (Compiladores.Checker.Type)Visit(context.type());
+            Compiladores.Checker.Type varMiniCSharpType = (Compiladores.Checker.Type)Visit(context.type()); //
             
-            if (varMiniCSharpType == Compiladores.Checker.Type.Error)
+            if (varMiniCSharpType == Compiladores.Checker.Type.Error) //
             {
-                Console.Error.WriteLine($"CodeGen Error (VisitVarDecl): No se pudo resolver el tipo para la variable que comienza con '{context.IDENT(0).GetText()}'.");
-                return null;
+                Console.Error.WriteLine($"CodeGen Error (VisitVarDecl): No se pudo resolver el tipo para la variable que comienza con '{context.IDENT(0).GetText()}'."); //
+                return null; //
             }
-            System.Type varNetType = ResolveNetType(varMiniCSharpType);
+            System.Type varNetType = ResolveNetType(varMiniCSharpType); //
 
-            foreach (var identNode in context.IDENT())
+            foreach (var identNode in context.IDENT()) //
             {
-                string varName = identNode.GetText();
-                VarSymbol varSymbol = _currentCodeGenScope.FindCurrent(varName) as VarSymbol;
+                string varName = identNode.GetText(); //
+                VarSymbol varSymbol = _currentCodeGenScope.FindCurrent(varName) as VarSymbol; //
 
-                if (varSymbol == null)
+                if (varSymbol == null) //
                 {
-                    Console.Error.WriteLine($"CodeGen Error (VisitVarDecl): No se encontró VarSymbol para '{varName}' en el scope actual (HashCode: {_currentCodeGenScope?.GetHashCode()}).");
-                    if(_currentCodeGenScope != null) {
-                        Console.Error.WriteLine($"Símbolos presentes en este scope del CodeGen ({_currentCodeGenScope.GetHashCode()}): " + string.Join(", ", _currentCodeGenScope.Symbols.Keys));
+                    Console.Error.WriteLine($"CodeGen Error (VisitVarDecl): No se encontró VarSymbol para '{varName}' en el scope actual (HashCode: {_currentCodeGenScope?.GetHashCode()})."); //
+                    if(_currentCodeGenScope != null) { //
+                        Console.Error.WriteLine($"Símbolos presentes en este scope del CodeGen ({_currentCodeGenScope.GetHashCode()}): " + string.Join(", ", _currentCodeGenScope.Symbols.Keys)); //
                     }
-                    continue;
+                    continue; //
                 }
 
-                if (_currentMethodBuilder != null)
+                if (_currentMethodBuilder != null) //
                 {
-                    if (_ilGenerator == null)
+                    if (_ilGenerator == null) //
                     {
-                        Console.Error.WriteLine($"Error Crítico (VisitVarDecl): ILGenerator es null al declarar variable local '{varName}'.");
-                        return null;
+                        Console.Error.WriteLine($"Error Crítico (VisitVarDecl): ILGenerator es null al declarar variable local '{varName}'."); //
+                        return null; //
                     }
-                    LocalBuilder lb = _ilGenerator.DeclareLocal(varNetType);
-                    _localBuilders[varSymbol] = lb;
-                    Console.WriteLine($"CodeGen INFO (VisitVarDecl): Declarado LocalBuilder para '{varName}' (VarSymbol Hash: {varSymbol.GetHashCode()}, LocalBuilder Index: {lb.LocalIndex}, Scope Hash: {_currentCodeGenScope.GetHashCode()})");
+                    LocalBuilder lb = _ilGenerator.DeclareLocal(varNetType); //
+                    _localBuilders[varSymbol] = lb; //
+                    Console.WriteLine($"CodeGen INFO (VisitVarDecl): Declarado LocalBuilder para '{varName}' (VarSymbol Hash: {varSymbol.GetHashCode()}, LocalBuilder Index: {lb.LocalIndex}, Scope Hash: {_currentCodeGenScope.GetHashCode()})"); //
                 }
-                else
+                else //
                 {
-                    FieldAttributes attributes = FieldAttributes.Public;
-                    if (_currentTypeBuilder != null && _programContext != null && _currentTypeBuilder.Name == _programContext.IDENT().GetText())
+                    FieldAttributes attributes = FieldAttributes.Public; //
+                    if (_currentTypeBuilder != null && _programContext != null && _currentTypeBuilder.Name == _programContext.IDENT().GetText()) //
                     {
-                        attributes |= FieldAttributes.Static;
+                        attributes |= FieldAttributes.Static; //
                     }
-                    FieldBuilder fb = _currentTypeBuilder.DefineField(varName, varNetType, attributes);
-                    _fieldBuilders[varSymbol] = fb;
-                    Console.WriteLine($"CodeGen INFO (VisitVarDecl): Definido FieldBuilder para '{varName}' (Estático: {fb.IsStatic})");
+                    FieldBuilder fb = _currentTypeBuilder.DefineField(varName, varNetType, attributes); //
+                    _fieldBuilders[varSymbol] = fb; //
+                    Console.WriteLine($"CodeGen INFO (VisitVarDecl): Definido FieldBuilder para '{varName}' (Estático: {fb.IsStatic})"); //
                 }
             }
-            return null;
+            return null; //
         }
         
         public override object VisitType(MiniCSharpParser.TypeContext context)
@@ -1347,21 +1352,23 @@ namespace Compiladores.CodeGen
 
         public override object VisitWhileStatement(MiniCSharpParser.WhileStatementContext context)
         {
-            if (_ilGenerator == null)
-            {
-                Console.Error.WriteLine("CodeGen Error (VisitWhileStatement): ILGenerator is null.");
-                return null;
-            }
+            if (_ilGenerator == null) { Console.Error.WriteLine("CodeGen Error (VisitWhileStatement): ILGenerator is null."); return null; }
 
-            System.Reflection.Emit.Label conditionLabel = _ilGenerator.DefineLabel(); 
-            System.Reflection.Emit.Label endWhileLabel = _ilGenerator.DefineLabel();  
+            System.Reflection.Emit.Label conditionLabel = _ilGenerator.DefineLabel();
+            System.Reflection.Emit.Label endWhileLabel = _ilGenerator.DefineLabel();
+
+            _breakLabelStack.Push(endWhileLabel); // Para 'break' statements
 
             _ilGenerator.MarkLabel(conditionLabel);
-            Visit(context.condition());
-            _ilGenerator.Emit(OpCodes.Brfalse_S, endWhileLabel);  
-            Visit(context.statement());
-            _ilGenerator.Emit(OpCodes.Br_S, conditionLabel); 
+            Visit(context.condition()); // Deja bool en la pila
+            _ilGenerator.Emit(OpCodes.Brfalse, endWhileLabel);  // Si es false, salir del bucle
+    
+            Visit(context.statement()); // Ejecutar cuerpo del bucle
+    
+            _ilGenerator.Emit(OpCodes.Br, conditionLabel);  // Volver a la condición
+
             _ilGenerator.MarkLabel(endWhileLabel);
+            _breakLabelStack.Pop(); // Remover el target de break para este bucle
 
             return null;
         }
@@ -1440,17 +1447,172 @@ namespace Compiladores.CodeGen
         public override object VisitQualifiedIdent(MiniCSharpParser.QualifiedIdentContext context) { return base.VisitQualifiedIdent(context); }
         public override object VisitFormPars(MiniCSharpParser.FormParsContext context) { return base.VisitFormPars(context); }
         
-        public override object VisitForStatement(MiniCSharpParser.ForStatementContext context) { 
-            Console.Error.WriteLine($"CodeGen SKIPPED: VisitForStatement no implementado completamente.");
-            return base.VisitForStatement(context); 
+        public override object VisitForStatement(MiniCSharpParser.ForStatementContext context)
+{
+    if (_ilGenerator == null) { Console.Error.WriteLine("CodeGen Error (VisitForStatement): ILGenerator is null."); return null; }
+
+    System.Reflection.Emit.Label conditionLabel = _ilGenerator.DefineLabel();
+    System.Reflection.Emit.Label incrementLabel = _ilGenerator.DefineLabel(); // Usada si hay statement de incremento
+    System.Reflection.Emit.Label bodyLabel = _ilGenerator.DefineLabel();
+    System.Reflection.Emit.Label endForLabel = _ilGenerator.DefineLabel();
+
+    _breakLabelStack.Push(endForLabel); // Para 'break' statements
+
+    // La gramática es: FOR LPAREN initExpr=expr? SEMI cond=condition? SEMI iterStmtRule=statement? RPAREN bodyStmtRule=statement
+    var initExprCtx = context.expr();
+    var conditionCtx = context.condition();
+    
+    MiniCSharpParser.StatementContext iterStatementCtx = null;
+    MiniCSharpParser.StatementContext bodyStatementCtx = null;
+
+    // ANTLR agrupa los 'statement' que coinciden.
+    // statement() devuelve un array. Si hay dos (iterador y cuerpo), context.statement(0) es el iterador y context.statement(1) el cuerpo.
+    // Si solo hay uno (cuerpo), context.statement(0) es el cuerpo.
+    var statementsInRule = context.statement();
+    if (statementsInRule.Length == 1) { // Solo el statement del cuerpo obligatorio
+        bodyStatementCtx = statementsInRule[0];
+    } else if (statementsInRule.Length == 2) { // El statement opcional de iteración y el statement del cuerpo
+        iterStatementCtx = statementsInRule[0]; // El statement? dentro de los paréntesis
+        bodyStatementCtx = statementsInRule[1]; // El statement después de los paréntesis
+    } else if (statementsInRule.Length == 0 && context.children.LastOrDefault(c => c is MiniCSharpParser.StatementContext) is MiniCSharpParser.StatementContext lastChild) {
+        // Fallback si ANTLR no los agrupa en el array `statement()` como se espera para opcionales (poco probable con `?` en la regla)
+        bodyStatementCtx = lastChild; // Asumir que el último hijo Statement es el cuerpo
+    }
+     else if (statementsInRule.Length == 0 ) {
+         // Esto no debería ocurrir si la gramática es `statement` (no opcional) para el cuerpo.
+         Console.Error.WriteLine("CodeGen Error (VisitForStatement): No se encontró el statement del cuerpo para el bucle FOR.");
+         _breakLabelStack.Pop();
+         return null;
+    }
+
+
+    // 1. Inicialización (expr?)
+    if (initExprCtx != null)
+    {
+        Visit(initExprCtx);
+        Compiladores.Checker.Type initType = GetExpressionType(initExprCtx); //
+        if (initType != Compiladores.Checker.Type.Void && initType != Compiladores.Checker.Type.Error)
+        {
+            _ilGenerator.Emit(OpCodes.Pop); // Pop si la expresión de inicialización deja un valor no utilizado
         }
-        public override object VisitSwitchStatement(MiniCSharpParser.SwitchStatementContext context) { 
-             Console.Error.WriteLine($"CodeGen SKIPPED: VisitSwitchStatement no implementado completamente.");
-            return base.VisitSwitchStatement(context); 
-        }
-        public override object VisitBreakStatement(MiniCSharpParser.BreakStatementContext context) { 
-             Console.Error.WriteLine($"CodeGen SKIPPED: VisitBreakStatement no implementado completamente.");
-            return base.VisitBreakStatement(context); 
+    }
+
+    _ilGenerator.Emit(OpCodes.Br, conditionLabel); // Saltar a la comprobación de condición primero
+
+    // 2. Cuerpo del bucle
+    _ilGenerator.MarkLabel(bodyLabel);
+    if (bodyStatementCtx != null)
+    {
+        Visit(bodyStatementCtx);
+    }
+    else 
+    {
+        // Si bodyStatementCtx es null aquí, hay un problema con la lógica de obtención de statements o la gramática.
+        Console.Error.WriteLine("CodeGen Error (VisitForStatement): El contexto del cuerpo del bucle FOR es nulo.");
+    }
+
+
+    // 3. Statement de incremento/iteración
+    _ilGenerator.MarkLabel(incrementLabel);
+    if (iterStatementCtx != null)
+    {
+        Visit(iterStatementCtx); // Es un statement, maneja su propia pila
+    }
+
+    // 4. Comprobación de condición
+    _ilGenerator.MarkLabel(conditionLabel);
+    if (conditionCtx != null)
+    {
+        Visit(conditionCtx); // Deja bool en la pila
+        _ilGenerator.Emit(OpCodes.Brfalse, endForLabel); // Si la condición es false, saltar al final
+    }
+    // Si la condición es true (o no hay condición), saltar al cuerpo
+    _ilGenerator.Emit(OpCodes.Br, bodyLabel);
+
+    // 5. Fin del bucle
+    _ilGenerator.MarkLabel(endForLabel);
+    _breakLabelStack.Pop();
+
+    return null;
+}
+        public override object VisitSwitchStatement(MiniCSharpParser.SwitchStatementContext context)
+{
+    if (_ilGenerator == null) { Console.Error.WriteLine("CodeGen Error (VisitSwitchStatement): ILGenerator is null."); return null; }
+
+    System.Reflection.Emit.Label endSwitchLabel = _ilGenerator.DefineLabel();
+    _breakLabelStack.Push(endSwitchLabel);
+
+    Visit(context.expr()); // Evaluar expresión del switch, deja valor en la pila
+    Compiladores.Checker.Type switchExprType = GetExpressionType(context.expr()); //
+    System.Type netSwitchExprType = ResolveNetType(switchExprType); //
+
+    // Almacenar el valor de la expresión del switch en una variable local
+    LocalBuilder switchValueLocal = _ilGenerator.DeclareLocal(netSwitchExprType);
+    _ilGenerator.Emit(OpCodes.Stloc, switchValueLocal);
+
+    var caseContexts = context.switchCase();
+    System.Reflection.Emit.Label[] caseTargetLabels = new System.Reflection.Emit.Label[caseContexts.Length];
+    for (int i = 0; i < caseContexts.Length; i++)
+    {
+        caseTargetLabels[i] = _ilGenerator.DefineLabel();
+    }
+
+    System.Reflection.Emit.Label defaultTargetLabel = _ilGenerator.DefineLabel(); 
+
+    // Generar lógica de despacho (comparaciones y saltos)
+    for (int i = 0; i < caseContexts.Length; i++)
+    {
+        _ilGenerator.Emit(OpCodes.Ldloc, switchValueLocal); // Cargar el valor del switch
+        Visit(caseContexts[i].constant()); // Cargar el valor constante del case
+        // El checker debería asegurar que los tipos son compatibles para comparación (int o char)
+        _ilGenerator.Emit(OpCodes.Beq, caseTargetLabels[i]); // Si son iguales, saltar al target del case
+    }
+
+    // Si ningún case coincide, saltar a default o al final del switch
+    if (context.defaultCase() != null)
+    {
+        _ilGenerator.Emit(OpCodes.Br, defaultTargetLabel);
+    }
+    else
+    {
+        _ilGenerator.Emit(OpCodes.Br, endSwitchLabel);
+    }
+
+    // Generar código para cada bloque case
+    for (int i = 0; i < caseContexts.Length; i++)
+    {
+        _ilGenerator.MarkLabel(caseTargetLabels[i]);
+        Visit(caseContexts[i]); // Visitar statements dentro del case
+                                // El 'break' dentro de Visit(caseContexts[i]) saltará a endSwitchLabel
+    }
+
+    // Generar código para el bloque default (si existe)
+    _ilGenerator.MarkLabel(defaultTargetLabel);
+    if (context.defaultCase() != null)
+    {
+        Visit(context.defaultCase()); // Visitar statements del default
+    }
+    // Si no hubo un caso default explícito y los cases anteriores no tuvieron break,
+    // la ejecución continuará aquí y luego al endSwitchLabel.
+
+    _ilGenerator.MarkLabel(endSwitchLabel);
+    _breakLabelStack.Pop();
+    return null;
+}
+        public override object VisitBreakStatement(MiniCSharpParser.BreakStatementContext context)
+        {
+            if (_ilGenerator == null) { Console.Error.WriteLine("CodeGen Error (VisitBreakStatement): ILGenerator is null."); return null; }
+
+            if (_breakLabelStack.Count > 0)
+            {
+                _ilGenerator.Emit(OpCodes.Br, _breakLabelStack.Peek());
+            }
+            else
+            {
+                // Esto debería ser detectado por el analizador semántico.
+                Console.Error.WriteLine("CodeGen Error (VisitBreakStatement): No hay bucle o switch envolvente del que salir con break.");
+            }
+            return null;
         }
 
         public override object VisitReadStatement(MiniCSharpParser.ReadStatementContext context)
@@ -1461,8 +1623,29 @@ namespace Compiladores.CodeGen
         
         public override object VisitBlockStatement(MiniCSharpParser.BlockStatementContext context) { return Visit(context.block());} 
         public override object VisitEmptyStatement(MiniCSharpParser.EmptyStatementContext context) { return base.VisitEmptyStatement(context); }
-        public override object VisitSwitchCase(MiniCSharpParser.SwitchCaseContext context) { return base.VisitSwitchCase(context); }
-        public override object VisitDefaultCase(MiniCSharpParser.DefaultCaseContext context) { return base.VisitDefaultCase(context); }
+        public override object VisitSwitchCase(MiniCSharpParser.SwitchCaseContext context)
+        {
+            // Visitar los statements dentro del case.
+            // El comportamiento de fall-through es natural a menos que se encuentre un 'break'.
+            foreach (var stmtCtx in context.statement())
+            {
+                Visit(stmtCtx);
+            }
+            // MiniCSharp, al igual que C#, requeriría un 'break' para evitar el fall-through explícito
+            // a menos que el case esté vacío. El 'break' es manejado por VisitBreakStatement.
+            // Si no hay break y el case no está vacío, en C# es un error.
+            // Aquí, si no hay break, simplemente se ejecutará el siguiente bloque de case si el IL lo permite (lo cual hace).
+            return null;
+        }
+        public override object VisitDefaultCase(MiniCSharpParser.DefaultCaseContext context)
+        {
+            // Visitar los statements dentro del case default.
+            foreach (var stmtCtx in context.statement())
+            {
+                Visit(stmtCtx);
+            }
+            return null;
+        }
         public override object VisitConstant(MiniCSharpParser.ConstantContext context) {
              if (context.number() != null) Visit(context.number());
              else if (context.CHARCONST() != null) _ilGenerator.Emit(OpCodes.Ldc_I4, (int)context.CHARCONST().GetText()[1]);

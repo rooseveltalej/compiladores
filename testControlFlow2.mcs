@@ -1,0 +1,72 @@
+// Archivo: testContadores.mcs
+
+class Program
+{
+    void Main()
+    {
+        int contadorGeneral;
+        int switchValor;
+        char tipoConteo;
+
+        write("--- Prueba de Contadores y Flujo ---");
+        write("");
+
+        // Prueba de FOR
+        write("Iniciando bucle FOR (Contador General de 0 a 2):");
+        contadorGeneral = 0; // Inicialización fuera del for
+        for ( ; contadorGeneral < 3; contadorGeneral = contadorGeneral +1 ; ) // Inicializador vacío, iterador es un statement
+        {
+            write("  Iteración FOR, Contador General: ");
+            write(contadorGeneral);
+
+            switchValor = contadorGeneral + 1; // switchValor será 1, 2, 3
+
+            write("    Valor para Switch: ");
+            write(switchValor);
+
+            switch (switchValor)
+            {
+                case 1:
+                    tipoConteo = 'A';
+                    write("      Switch Case 1: Tipo de conteo A");
+                    break;
+                case 2:
+                    tipoConteo = 'B';
+                    write("      Switch Case 2: Tipo de conteo B");
+                    // No hay break, se espera fall-through si MiniCSharp lo permite y el CIL generado también
+                case 3:
+                    tipoConteo = 'C';
+                    write("      Switch Case 3 (o fall-through desde 2): Tipo C");
+                    // Si hubo fall-through desde el case 2, tipoConteo se sobrescribe a 'C'.
+                    // Si se entró directamente al case 3, tipoConteo es 'C'.
+                    write("        Char actual en Case 3: ");
+                    write(tipoConteo);
+                    break;
+                default:
+                    write("      Switch Default: Valor inesperado.");
+                    break;
+            }
+            write("    Fin del Switch para esta iteración.");
+            write(""); // Línea en blanco
+        }
+        write("Fin del bucle FOR.");
+        write("");
+
+        // Prueba simple de Switch con char
+        write("Iniciando prueba de Switch con char:");
+        tipoConteo = 'X';
+        switch(tipoConteo)
+        {
+            case 'X':
+                write("  Char es X");
+                break;
+            case 'Y':
+                write("  Char es Y");
+                break;
+        }
+        write("Fin prueba Switch con char.");
+        write("");
+
+        write("--- Fin de la Prueba ---");
+    }
+}
