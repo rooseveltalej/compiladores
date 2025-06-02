@@ -1,0 +1,79 @@
+﻿// Archivo: testControlFlow_fixed.mcs
+
+class Program
+{
+    void Main()
+    {
+        int i;
+        int option;
+        char charVal;
+
+        write("Iniciando prueba de bucle FOR y SWITCH:");
+        write(""); // Nueva línea
+
+        i = 1; // Inicializar 'i' ANTES del bucle for
+
+        // La gramática del for es: FOR LPAREN expr? SEMI condition? SEMI iter_stmt=statement? RPAREN body_stmt=statement
+        // 1. La inicialización "i = 1" no es una expr válida, así que la hacemos antes y dejamos expr? vacía.
+        // 2. La condición "i <= 5" es válida.
+        // 3. El iterador "i++" debe ser un statement completo. Un DesignatorStatement para i++ es "i++;".
+        //    Alternativamente, "i = i + 1;" también es un statement completo.
+        for ( ; i <= 5; i = i + 1; ) // Dejamos la expr? de inicialización vacía. Usamos "i = i + 1;" como iter_stmt.
+        {
+            write("Iteración del FOR: ");
+            write(i);
+
+            option = i % 3; // Para variar la opción del switch (0, 1, 2, 0, 1)
+
+            write("  Valor para el Switch: ");
+            write(option);
+
+            switch (option)
+            {
+                case 0:
+                    write("    Switch Case 0: Múltiplo de 3");
+                    charVal = 'A';
+                    write("      Char asignado: ");
+                    write(charVal);
+                    break;
+                case 1:
+                    write("    Switch Case 1: Residuo 1");
+                    if (i == 4) {
+                        write("      FOR i es 4, mensaje especial.");
+                        // El break aquí estaría dentro del if, no del case 1 directamente.
+                    }
+                    break; 
+                case 2:
+                    write("    Switch Case 2: Residuo 2");
+                    charVal = 'C';
+                    write("      Char asignado: ");
+                    write(charVal);
+                    // No hay break aquí.
+                    break; 
+            }
+            write("  Fin de la iteración del Switch.");
+            write(""); // Nueva línea
+        }
+
+        write("Bucle FOR y SWITCH completado.");
+
+        write("");
+        write("Probando switch con char:");
+        charVal = 'b';
+        switch (charVal) {
+            case 'a':
+                write("  Char es 'a'");
+                break;
+            case 'b':
+                write("  Char es 'b'");
+                // Fall-through intencional
+            case 'c':
+                write("  Char es 'c' (o fall-through desde 'b')");
+                break;
+            default:
+                write("  Char es desconocido.");
+                break;
+        }
+        write("Fin de prueba de switch con char.");
+    }
+}
