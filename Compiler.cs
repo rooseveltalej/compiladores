@@ -12,7 +12,7 @@ namespace Compiladores
     {
         public static void Compile(string[] args)
         {
-            string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\myProgram.mcs";
+            string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\testArraysAccess.mcs";
 
             if (args.Length > 0)
                 filePath = args[0];
@@ -75,7 +75,7 @@ namespace Compiladores
                             "InMemoryAssembly",
                             semanticChecker.ExpressionTypes
                         );
-
+                        
                         var mainClassType = codeGenerator.GenerateAssemblyAndGetMainType(tree);
 
                         if (mainClassType != null)

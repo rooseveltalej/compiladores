@@ -13,7 +13,7 @@ namespace Compiladores
         private Label lblLineInfo;
         private Panel sidebar;
 
-        private string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\myProgram.mcs";
+        private string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\testArraysAccess.mcs";
 
         public MainForm()
         {

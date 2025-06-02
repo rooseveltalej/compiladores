@@ -1,0 +1,35 @@
+// testArraysAccess.mcs
+class TestArraysAccess {
+    void Main() {
+        int[] a;
+        char[] c;
+        int i;
+        char ch;
+
+        a = new int[5];
+        c = new char[3];
+
+        a[0] = 10;
+        a[1] = a[0] + 5; // Carga de a[0], luego asignación a a[1]
+        i = 2;
+        a[i] = a[i-1] * 2; // Carga de a[1], luego asignación a a[2]
+
+        c[0] = 'H';
+        c[1] = 'o';
+        c[2] = 'l'; // El checker debe permitir esto, aunque no haya 'a'
+        ch = c[1];  // Carga de c[1]
+
+        write("Array access test. Values should be:");
+        write("a[0] = 10");
+        write(a[0]); 
+        write("a[1] = 15");
+        write(a[1]);
+        write("a[2] = 30");
+        write(a[2]); 
+        write("ch = 'o'");
+        write(ch); 
+        write(c[0]); // H
+        write(c[1]); // o
+        write(c[2]); // l
+    }
+}
