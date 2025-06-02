@@ -980,6 +980,43 @@ namespace Compiladores.CodeGen
             MethodSymbol resolvedMethodSymbol = ResolveDesignatorToCallableSymbol(designatorCtx);
             MethodBase methodToCall = null; 
 
+            // ** INICIO: MODIFICACIÓN PARA 'len' **
+            if (resolvedMethodSymbol != null && resolvedMethodSymbol.Name == "len")
+            {
+                if (_ilGenerator == null)
+                {
+                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - len): ILGenerator is null.");
+                     return;
+                }
+                if (actParsCtx == null || actParsCtx.expr().Length != 1)
+                {
+                    Console.Error.WriteLine("CodeGen Error (HandleMethodCall - len): La función 'len' espera 1 argumento (un array).");
+                    // Limpiar la pila si se apilaron argumentos incorrectos o 'this'
+                    if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if(GetExpressionType(argExpr)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    _ilGenerator.Emit(OpCodes.Ldc_I4_M1); // Dejar un valor de error (-1) en la pila para len
+                    return;
+                }
+
+                var arrayExpr = actParsCtx.expr(0);
+                Visit(arrayExpr); // Esto debería dejar la referencia del array en la pila.
+
+                Compiladores.Checker.Type arrayExprType = GetExpressionType(arrayExpr);
+                if (arrayExprType.Kind != TypeKind.Array)
+                {
+                    Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - len): El argumento para 'len' debe ser un array, se obtuvo {arrayExprType.Name}.");
+                    if (arrayExprType != Compiladores.Checker.Type.Void && arrayExprType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
+                    _ilGenerator.Emit(OpCodes.Ldc_I4_M1); // Dejar un valor de error (-1) en la pila para len
+                    return;
+                }
+
+                _ilGenerator.Emit(OpCodes.Ldlen);
+                _ilGenerator.Emit(OpCodes.Conv_I4); // Ldlen devuelve native int, convertir a Int32 (int de C#)
+                return; // La función 'len' ya fue manejada.
+            }
+            // ** FIN: MODIFICACIÓN PARA 'len' **
+            // (Aquí continuaría la lógica original de HandleMethodCall para otros métodos)
+
+
             if (resolvedMethodSymbol != null)
             {
                 if (_methodBuilders.TryGetValue(resolvedMethodSymbol, out MethodBuilder mb))
@@ -1127,6 +1164,75 @@ namespace Compiladores.CodeGen
                 if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if(GetExpressionType(argExpr)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                 if (isInstanceMethodOnThis) _ilGenerator.Emit(OpCodes.Pop); 
             }
+        }
+         private MethodSymbol ResolveDesignatorToCallableSymbol(MiniCSharpParser.DesignatorContext designatorCtx)
+        {
+            if (designatorCtx == null || designatorCtx.IDENT() == null || designatorCtx.IDENT().Length == 0)
+            {
+                Console.Error.WriteLine("CodeGen Error (ResolveDesignatorToCallableSymbol): Invalid designator context.");
+                return null;
+            }
+
+            if (designatorCtx.DOT().Length == 0 && designatorCtx.LBRACK().Length == 0)
+            {
+                string methodName = designatorCtx.IDENT(0).GetText();
+                Symbol symbol = _currentCodeGenScope.Find(methodName); 
+
+                if (symbol is MethodSymbol methodSymbol)
+                {
+                    return methodSymbol;
+                }
+                else if (symbol != null)
+                {
+                    return null; 
+                }
+                Symbol globalSymbol = _symbolTable.SearchGlobal(methodName);
+                 if (globalSymbol is MethodSymbol globalMethodSymbol)
+                {
+                    return globalMethodSymbol;
+                }
+                return null; 
+            }
+
+            if (designatorCtx.DOT().Length > 0)
+            {
+                string baseIdentifierName = designatorCtx.IDENT(0).GetText();
+                string memberMethodName = designatorCtx.IDENT(1).GetText(); 
+
+                Symbol baseSymbol = _currentCodeGenScope.Find(baseIdentifierName) ?? _symbolTable.SearchGlobal(baseIdentifierName);
+
+                if (baseSymbol is ClassSymbol classSymbol) 
+                {
+                    if (classSymbol.Type is ClassType classType) 
+                    {
+                        Symbol memberSymbol = classType.Members.FindCurrent(memberMethodName); 
+                        if (memberSymbol is MethodSymbol methodSymbol)
+                        {
+                            return methodSymbol;
+                        }
+                    }
+                }
+                else if (baseIdentifierName == "Console") 
+                {
+                    return null; 
+                }
+                else if (baseSymbol is VarSymbol varSym) 
+                {
+                     if (varSym.Type is ClassType instanceClassType) 
+                     {
+                         Symbol memberSymbol = instanceClassType.Members.FindCurrent(memberMethodName);
+                         if (memberSymbol is MethodSymbol methodSymbol)
+                         {
+                             return methodSymbol;
+                         }
+                     }
+                }
+                Console.Error.WriteLine($"CodeGen Error (ResolveDesignatorToCallableSymbol): Cannot resolve method '{memberMethodName}' on base '{baseIdentifierName}'. Base is not a known class or object with members.");
+                return null;
+            }
+            
+            Console.Error.WriteLine($"CodeGen Error (ResolveDesignatorToCallableSymbol): Complex designator for method call not fully supported: {designatorCtx.GetText()}");
+            return null;
         }
          private MethodSymbol ResolveDesignatorToCallableSymbol(MiniCSharpParser.DesignatorContext designatorCtx)
         {
