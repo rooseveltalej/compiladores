@@ -35,7 +35,7 @@ type: IDENT (LBRACK RBRACK)?;
 statement:
     designator (ASSIGN expr | LPAREN actPars? RPAREN | INC | DEC) SEMI #DesignatorStatement
     | IF LPAREN condition RPAREN statement (ELSE statement)? #IfStatement
-    | FOR LPAREN expr? SEMI condition? SEMI statement? RPAREN statement #ForStatement
+    | FOR LPAREN expr SEMI condition? SEMI statement? RPAREN statement #ForStatement
     | WHILE LPAREN condition RPAREN statement #WhileStatement
     | SWITCH LPAREN expr RPAREN LBRACE switchCase* defaultCase? RBRACE #SwitchStatement // <<< NUEVA ALTERNATIVA
     | BREAK SEMI #BreakStatement
