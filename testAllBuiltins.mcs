@@ -1,0 +1,78 @@
+﻿// Archivo: testAllBuiltins.mcs
+class Program
+{
+    void Main()
+    {
+        int[] nums;
+        char[] chars;
+
+        // --- Test con array de enteros ---
+        write("--- Test de Array de Enteros ---");
+        nums = new int[0]; // Empezar con array vacío
+        write(len(nums)); // Esperado: 0
+
+        add(nums, 10);    // nums: {10}
+        add(nums, 20);    // nums: {10, 20}
+        add(nums, 30);    // nums: {10, 20, 30}
+        add(nums, 40);    // nums: {10, 20, 30, 40}
+        add(nums, 50);    // nums: {10, 20, 30, 40, 50}
+
+        write(len(nums)); // Esperado: 5
+        write(nums[0]);   // Esperado: 10
+        write(nums[2]);   // Esperado: 30
+        write(nums[4]);   // Esperado: 50
+
+        del(nums, 2);     // Elimina el 30 (índice 2). nums: {10, 20, 40, 50}
+        write(len(nums)); // Esperado: 4
+        write(nums[0]);   // Esperado: 10
+        write(nums[1]);   // Esperado: 20
+        write(nums[2]);   // Esperado: 40 (era nums[3])
+        write(nums[3]);   // Esperado: 50 (era nums[4])
+
+        del(nums, 0);     // Elimina el 10 (índice 0). nums: {20, 40, 50}
+        write(len(nums)); // Esperado: 3
+        write(nums[0]);   // Esperado: 20
+        write(nums[1]);   // Esperado: 40
+        write(nums[2]);   // Esperado: 50
+
+        del(nums, 2);     // Elimina el 50 (último elemento, índice 2). nums: {20, 40}
+        write(len(nums)); // Esperado: 2
+        write(nums[0]);   // Esperado: 20
+        write(nums[1]);   // Esperado: 40
+
+        add(nums, 60);    // nums: {20, 40, 60}
+        write(len(nums)); // Esperado: 3
+        write(nums[2]);   // Esperado: 60
+        
+        del(nums, 0);     // nums: {40, 60}
+        del(nums, 0);     // nums: {60}
+        del(nums, 0);     // nums: {} (vacío)
+        write(len(nums)); // Esperado: 0
+
+        // Intentar 'del' en array vacío (el helper debería devolver array vacío)
+        del(nums, 0); 
+        write(len(nums)); // Esperado: 0 (si el helper maneja bien array vacío/índice inválido devolviendo el mismo array o uno vacío)
+
+        add(nums, 100);   // nums: {100}
+        write(len(nums)); // Esperado: 1
+        write(nums[0]);   // Esperado: 100
+
+        // --- Test con array de caracteres ---
+        write("--- Test de Array de Caracteres ---");
+        chars = new char[1];
+        chars[0] = 'a';
+        write(len(chars)); // Esperado: 1
+        write(chars[0]);   // Esperado: a
+
+        add(chars, 'b');   // chars: {'a', 'b'}
+        add(chars, 'c');   // chars: {'a', 'b', 'c'}
+        write(len(chars)); // Esperado: 3
+        write(chars[1]);   // Esperado: b
+        write(chars[2]);   // Esperado: c
+
+        del(chars, 1);     // Elimina 'b'. chars: {'a', 'c'}
+        write(len(chars)); // Esperado: 2
+        write(chars[0]);   // Esperado: a
+        write(chars[1]);   // Esperado: c
+    }
+}
