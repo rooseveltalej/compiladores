@@ -1,0 +1,14 @@
+﻿class Program
+{
+    void Main()
+    {
+        int[] NumsTest; 
+        NumsTest = new int[2];
+        NumsTest[0] = 10;
+        NumsTest[1] = 20;
+
+        del(NumsTest, 0); // Elimina el primer elemento, NumsTest debería ser {20}
+
+        write(NumsTest[0]); // Debería escribir 20. ¿Falla aquí?
+    }
+}

@@ -1,0 +1,30 @@
+﻿class Program
+{
+    void Main()
+    {
+        int[] a;
+        a = new int[2];
+        a[0] = 10;
+        a[1] = 20;
+        write(len(a)); // 2
+        write(a[0]);   // 10
+        write(a[1]);   // 20
+
+        add(a, 30);
+        write(len(a)); // 3
+        write(a[0]);   // 10
+        write(a[1]);   // 20
+        write(a[2]);   // 30
+
+        add(a, 40);
+        write(len(a)); // 4
+        write(a[3]);   // 40
+
+        char[] c;
+        c = new char[1];
+        c[0] = 'x';
+        add(c, 'y');
+        write(len(c)); // 2
+        write(c[1]);   // y
+    }
+}

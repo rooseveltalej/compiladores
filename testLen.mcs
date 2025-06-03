@@ -1,0 +1,13 @@
+﻿class Program
+{
+    void Main()
+    {
+        int[] arr;
+        arr = new int[5];
+        write(len(arr)); // Debería imprimir 5
+
+        char[] cArr;
+        cArr = new char[10];
+        write(len(cArr)); // Debería imprimir 10
+    }
+}
