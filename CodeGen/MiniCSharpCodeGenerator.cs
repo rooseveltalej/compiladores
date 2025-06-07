@@ -1,5 +1,4 @@
-﻿// Archivo: compiladores/CodeGen/MiniCSharpCodeGenerator.cs
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -12,7 +11,7 @@ using Compiladores.Checker;
 using Compiladores; 
 // Si MiniCSharpRuntimeHelpers.cs está directamente en namespace Compiladores:
 // using Compiladores; // (Ya estaría cubierto por el using Compiladores.Checker;)
-
+using System.Globalization;
 using generated;
 
 namespace Compiladores.CodeGen
@@ -359,7 +358,7 @@ namespace Compiladores.CodeGen
             if (context.number().INTCONST() != null)
             { _ilGenerator.Emit(OpCodes.Ldc_I4, int.Parse(context.number().INTCONST().GetText())); }
             else if (context.number().DOUBLECONST() != null)
-            { _ilGenerator.Emit(OpCodes.Ldc_R8, double.Parse(context.number().DOUBLECONST().GetText())); }
+            { _ilGenerator.Emit(OpCodes.Ldc_R8, double.Parse(context.number().DOUBLECONST().GetText(), System.Globalization.CultureInfo.InvariantCulture)); }
             ExpressionTypes[context] = context.number().INTCONST() != null ? Compiladores.Checker.Type.Int : Compiladores.Checker.Type.Double;
             return null;
         }
@@ -1319,6 +1318,10 @@ namespace Compiladores.CodeGen
                         {
                             _ilGenerator.Emit(OpCodes.Conv_R8); 
                         }
+                        else if (formalType == Compiladores.Checker.Type.Int && actualType == Compiladores.Checker.Type.Double)
+                        {
+                            _ilGenerator.Emit(OpCodes.Conv_I4);
+                        }
                     }
                     else if (methodToCall is MethodInfo reflectedMi) 
                     {
@@ -2111,3 +2114,6 @@ namespace Compiladores.CodeGen
 
     }
 }
+
+
+
