@@ -32,6 +32,19 @@ namespace Compiladores // Asegúrate que este namespace coincida con el using en
             return newArray;
         }
 
+        // Helper para add(double[], double)
+        public static double[] AddDoubleElement(double[] array, double element)
+        {
+            int originalLength = (array == null) ? 0 : array.Length;
+            double[] newArray = new double[originalLength + 1];
+            if (array != null)
+            {
+                System.Array.Copy(array, newArray, originalLength);
+            }
+            newArray[originalLength] = element;
+            return newArray;
+        }
+
         // NUEVOS HELPERS PARA 'del'
 
         // Helper para del(int[], int)
@@ -74,6 +87,30 @@ namespace Compiladores // Asegúrate que este namespace coincida con el using en
             }
 
             char[] newArray = new char[array.Length - 1];
+            if (index > 0)
+            {
+                System.Array.Copy(array, 0, newArray, 0, index);
+            }
+            if (index < array.Length - 1)
+            {
+                System.Array.Copy(array, index + 1, newArray, index, array.Length - index - 1);
+            }
+            return newArray;
+        }
+
+        // Helper para del(double[], int)
+        public static double[] DeleteDoubleElementAt(double[] array, int index)
+        {
+            if (array == null || array.Length == 0)
+            {
+                return array ?? System.Array.Empty<double>();
+            }
+            if (index < 0 || index >= array.Length)
+            {
+                throw new IndexOutOfRangeException("Index was outside the bounds of the array for del operation.");
+            }
+
+            double[] newArray = new double[array.Length - 1];
             if (index > 0)
             {
                 System.Array.Copy(array, 0, newArray, 0, index);

@@ -1,0 +1,21 @@
+// Archivo: testDoubleArrays.mcs
+class ProgramDouble
+{
+    void Main()
+    {
+        double[] nums;
+        write("-- Double array test --");
+        nums = new double[0];
+        write(len(nums));
+        add(nums, 1.5);
+        add(nums, 2.5);
+        add(nums, 3.5);
+        write(len(nums));
+        write(nums[0]);
+        write(nums[2]);
+        del(nums, 1);
+        write(len(nums));
+        write(nums[0]);
+        write(nums[1]);
+    }
+}

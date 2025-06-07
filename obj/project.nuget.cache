@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "WOjNk7ZIMEc=",
+  "dgSpecHash": "w6FARD4X5B4=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Bayron\\RiderProjects\\compiladores\\Compiladores.csproj",
+  "projectFilePath": "C:\\Users\\antho\\programming\\Compiladores 2\\Compiladores.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Bayron\\.nuget\\packages\\antlr4.runtime.standard\\4.13.1\\antlr4.runtime.standard.4.13.1.nupkg.sha512"
+    "C:\\Users\\antho\\.nuget\\packages\\antlr4.runtime.standard\\4.13.1\\antlr4.runtime.standard.4.13.1.nupkg.sha512"
   ],
   "logs": []
 }

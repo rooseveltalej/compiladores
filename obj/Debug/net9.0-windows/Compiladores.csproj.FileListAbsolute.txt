@@ -36,3 +36,22 @@ C:\Users\Bayron\RiderProjects\compiladores\bin\Debug\net9.0-windows\Antlr4.Runti
 C:\Users\Bayron\RiderProjects\compiladores\obj\Debug\net9.0-windows\Compilad.97AE351D.Up2Date
 C:\Users\Bayron\RiderProjects\compiladores\obj\Debug\net9.0-windows\Compiladores.genruntimeconfig.cache
 C:\Users\Bayron\RiderProjects\compiladores\obj\Debug\net9.0-windows\ref\Compiladores.dll
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\test.mcs
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\Compiladores.exe
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\Compiladores.deps.json
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\Compiladores.runtimeconfig.json
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\Compiladores.dll
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\Compiladores.pdb
+C:\Users\antho\programming\Compiladores 2\bin\Debug\net9.0-windows\Antlr4.Runtime.Standard.dll
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.csproj.AssemblyReference.cache
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.AssemblyInfoInputs.cache
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.AssemblyInfo.cs
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.csproj.CoreCompileInputs.cache
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.sourcelink.json
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compilad.97AE351D.Up2Date
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.dll
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\refint\Compiladores.dll
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.pdb
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\Compiladores.genruntimeconfig.cache
+C:\Users\antho\programming\Compiladores 2\obj\Debug\net9.0-windows\ref\Compiladores.dll

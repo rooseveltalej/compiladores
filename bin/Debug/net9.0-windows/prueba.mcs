@@ -1,0 +1,8 @@
+class Program
+{
+	void Main(){
+		string a;
+		a = "Hola Mundo";
+		write(a);
+	}
+}

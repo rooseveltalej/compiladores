@@ -163,9 +163,9 @@ namespace Compiladores.Checker
             Type baseType = typeSymbol.Type;
             if (context.LBRACK() != null && context.RBRACK() != null) 
             {
-                if (!(baseType.Kind == TypeKind.Int || baseType.Kind == TypeKind.Char))
+                if (!(baseType.Kind == TypeKind.Int || baseType.Kind == TypeKind.Char || baseType.Kind == TypeKind.Double))
                 {
-                    AddError($"Arrays can only be of type 'int' or 'char', not '{baseType.Name}'.", context);
+                    AddError($"Arrays can only be of type 'int', 'char', or 'double', not '{baseType.Name}'.", context);
                     return StoreAndReturnType(context, Type.Error);
                 }
                 return StoreAndReturnType(context, new ArrayType(baseType));
@@ -938,8 +938,8 @@ namespace Compiladores.Checker
 
             if (context.LBRACK() != null) 
             {
-                if (!(typeSymbol.Type.Kind == TypeKind.Int || typeSymbol.Type.Kind == TypeKind.Char))
-                { AddError($"Can only create arrays of 'int' or 'char', not '{typeName}'.", context.IDENT()); return StoreAndReturnType(context, Type.Error); }
+                if (!(typeSymbol.Type.Kind == TypeKind.Int || typeSymbol.Type.Kind == TypeKind.Char || typeSymbol.Type.Kind == TypeKind.Double))
+                { AddError($"Can only create arrays of 'int', 'char', or 'double', not '{typeName}'.", context.IDENT()); return StoreAndReturnType(context, Type.Error); }
                 Type exprType = Visit(context.expr()); // StoreAndReturnType se llamará dentro de Visit(expr)
                 if(exprType.Kind != TypeKind.Int) { AddError("Array size specifier must be an integer.", context.expr()); }
                 return StoreAndReturnType(context, new ArrayType(typeSymbol.Type));

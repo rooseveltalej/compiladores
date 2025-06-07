@@ -1,0 +1,13 @@
+class ProgramDouble
+{
+    void Main()
+    {
+	double a;
+	double b;
+
+	a = 0.5;
+	b = 0.7;
+
+	write(a+b);
+    }
+}

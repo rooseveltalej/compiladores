@@ -1144,6 +1144,8 @@ namespace Compiladores.CodeGen
                     helperMethodInfo_add = typeof(MiniCSharpRuntimeHelpers).GetMethod("AddIntElement", new[] { typeof(int[]), typeof(int) });
                 else if (elementMetaType == Compiladores.Checker.Type.Char)
                     helperMethodInfo_add = typeof(MiniCSharpRuntimeHelpers).GetMethod("AddCharElement", new[] { typeof(char[]), typeof(char) });
+                else if (elementMetaType == Compiladores.Checker.Type.Double)
+                    helperMethodInfo_add = typeof(MiniCSharpRuntimeHelpers).GetMethod("AddDoubleElement", new[] { typeof(double[]), typeof(double) });
                 
                 if (helperMethodInfo_add == null)
                 {
@@ -1206,6 +1208,8 @@ namespace Compiladores.CodeGen
                     helperMethodInfo_del = typeof(MiniCSharpRuntimeHelpers).GetMethod("DeleteIntElementAt", new[] { typeof(int[]), typeof(int) });
                 else if (elementMetaType_del == Compiladores.Checker.Type.Char)
                     helperMethodInfo_del = typeof(MiniCSharpRuntimeHelpers).GetMethod("DeleteCharElementAt", new[] { typeof(char[]), typeof(int) });
+                else if (elementMetaType_del == Compiladores.Checker.Type.Double)
+                    helperMethodInfo_del = typeof(MiniCSharpRuntimeHelpers).GetMethod("DeleteDoubleElementAt", new[] { typeof(double[]), typeof(int) });
                 
                 if (helperMethodInfo_del == null)
                 {
