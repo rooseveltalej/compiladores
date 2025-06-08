@@ -1,0 +1,37 @@
+﻿class FinalIntegrationTest
+{
+	// 1. Clase anidada para probar la instanciación de objetos y el acceso a campos.
+	class GradeReport
+	{
+		double rawScore;
+		int roundedScore;
+	}
+
+	void Main()
+	{
+		GradeReport report;
+
+		write("--- Prueba de Integración Final ---");
+		
+		// 2. Instanciación de un objeto.
+		report = new GradeReport();
+
+		// 3. Uso de 'read' para escribir en el campo de un objeto.
+		write("Por favor, ingrese una calificación con decimales (ej. 95.8):");
+		read(report.rawScore);
+
+		// 4. Lectura de un campo de objeto y casteo a otro tipo.
+		write("Casteando la calificación a un entero (truncando)...");
+		report.roundedScore = (int) report.rawScore;
+
+		// 5. Uso de 'write' para leer los campos del objeto.
+		write("--- Reporte de Calificaciones ---");
+		write("Calificación original (double):");
+		write(report.rawScore);
+		write("Calificación redondeada (int):");
+		write(report.roundedScore);
+
+		write("");
+		write("--- Fin de la Prueba ---");
+	}
+}

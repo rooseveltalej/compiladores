@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks; // Necesario para Task
 using System.Windows.Forms;
-using System.Runtime.InteropServices; // For SendMessage P/Invoke
+using System.Runtime.InteropServices;
 
 namespace Compiladores
 {
@@ -13,16 +14,14 @@ namespace Compiladores
         private Button btnOpenFile;
         private Button btnSaveFile;
         private Button btnCompile;
-        private TextBox txtOutput; // txtOutput can remain a TextBox
+        private TextBox txtOutput;
         private StatusStrip statusStrip;
         private ToolStripStatusLabel lblLineInfoStatus;
 
-        // P/Invoke for scroll synchronization and line info
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
         private const int EM_GETFIRSTVISIBLELINE = 0x00CE;
         private const int EM_LINEINDEX = 0x00BB;
-        // EM_POSFROMCHAR is not strictly needed if using RichTextBox properties for column
 
         public MainForm()
         {
@@ -32,15 +31,14 @@ namespace Compiladores
 
             InitializeUiControls();
 
-            string initialFilePath = @"C:\Users\Santiago\RiderProjects\compiladores\testArraysAccess.mcs"; // From original code
-            string initialContent = "class Program { void Main() { } } // Default content"; // Default content
+            string initialFilePath = @"C:\Users\Bayron\RiderProjects\compiladores\finalIntegrationTest.mcs"; // Asegúrate que esta ruta es correcta
+            string initialContent = "class Program { void Main() { } }";
             if (File.Exists(initialFilePath))
             {
                 try { initialContent = File.ReadAllText(initialFilePath); }
-                catch { /* Ignore error for initial load, use default */ }
+                catch { /* Ignorar */ }
             }
             AddNewTab(Path.GetFileName(initialFilePath), initialFilePath, initialContent);
-
 
             Resize += (_, __) => AdjustLayout();
             AdjustLayout();
@@ -55,7 +53,7 @@ namespace Compiladores
                 DrawMode = TabDrawMode.OwnerDrawFixed,
                 Padding = new Point(12, 4)
             };
-            tabControlEditor.SelectedIndexChanged += TabControlEditor_SelectedIndexChanged; // Correct event
+            tabControlEditor.SelectedIndexChanged += TabControlEditor_SelectedIndexChanged;
             tabControlEditor.DrawItem += TabControlEditor_DrawItem;
             tabControlEditor.MouseClick += TabControlEditor_MouseClick;
             Controls.Add(tabControlEditor);
@@ -113,6 +111,54 @@ namespace Compiladores
             statusStrip.Items.Add(lblLineInfoStatus);
             Controls.Add(statusStrip);
         }
+        
+        // **** INICIO DE LA CORRECCIÓN ****
+        private async void BtnCompile_Click(object sender, EventArgs e)
+        {
+            if (tabControlEditor.SelectedTab == null) { txtOutput.Text = "No file to compile."; return; }
+            var state = tabControlEditor.SelectedTab.Tag as EditorTabState;
+            if (state == null || state.EditorControl == null) { txtOutput.Text = "Error accessing current editor."; return; }
+
+            if (string.IsNullOrEmpty(state.FilePath) || state.HasUnsavedChanges)
+            {
+                if (!SaveCurrentTab()) { txtOutput.Text = "Compilation cancelled: File not saved."; return; }
+            }
+            if (string.IsNullOrEmpty(state.FilePath)) { txtOutput.Text = "Cannot compile without a valid file path."; return; }
+
+            txtOutput.Text = "Compiling...";
+            btnCompile.Enabled = false; // Deshabilitar el botón para evitar clics múltiples
+
+            try
+            {
+                // Ejecutamos la compilación en un hilo de fondo
+                await Task.Run(() =>
+                {
+                    // Redirigimos la salida de la consola a un StringWriter
+                    var writer = new StringWriter();
+                    Console.SetOut(writer);
+                    
+                    Compiler.Compile(new[] { state.FilePath });
+                    
+                    writer.Flush();
+                    
+                    // Actualizamos el TextBox en el Hilo de la UI de forma segura
+                    this.Invoke((MethodInvoker)delegate {
+                        txtOutput.Text = writer.ToString();
+                    });
+                });
+            }
+            catch (Exception ex) 
+            { 
+                txtOutput.Text = $"Error: {ex.Message}\n{ex.StackTrace}"; 
+            }
+            finally
+            {
+                 btnCompile.Enabled = true; // Rehabilitar el botón al finalizar
+            }
+        }
+        // **** FIN DE LA CORRECCIÓN ****
+
+        #region Manejo de Pestañas y UI (Sin cambios)
 
         private void AddNewTab(string tabTitle = "Nuevo", string filePath = null, string content = "")
         {
@@ -131,23 +177,21 @@ namespace Compiladores
                 BorderStyle = BorderStyle.None, WordWrap = false, RightToLeft = RightToLeft.Yes
             };
             editorState.LineNumbersControl = lineNumbersRtb;
-
-            // Use RichTextBox for the editor
+            
             RichTextBox codeEditor = new RichTextBox()
             {
                 Dock = DockStyle.Fill, ScrollBars = RichTextBoxScrollBars.ForcedBoth,
                 WordWrap = false, Font = new Font("Consolas", 11),
                 BackColor = Color.FromArgb(25, 25, 25), ForeColor = Color.White,
-                BorderStyle = BorderStyle.None, // Looks better in a panel
+                BorderStyle = BorderStyle.None,
                 AcceptsTab = true, Text = content,
-                HideSelection = false // Keep selection visible even when focus is lost
+                HideSelection = false
             };
             editorState.EditorControl = codeEditor;
 
             codeEditor.TextChanged += Editor_TextChanged;
-            // For SelectionChanged behavior:
-            codeEditor.SelectionChanged += Editor_SelectionChanged; // RichTextBox has this event
-            codeEditor.VScroll += Editor_VScroll; // RichTextBox has this event
+            codeEditor.SelectionChanged += Editor_SelectionChanged;
+            codeEditor.VScroll += Editor_VScroll;
             codeEditor.FontChanged += (s, e) => {
                 lineNumbersRtb.Font = codeEditor.Font;
                 UpdateLineNumbersForCurrentTab();
@@ -155,12 +199,11 @@ namespace Compiladores
 
             Panel editorContainerPanel = new Panel {
                 Dock = DockStyle.Fill,
-                BorderStyle = BorderStyle.FixedSingle, // Apply border to panel
+                BorderStyle = BorderStyle.FixedSingle,
                 Padding = new Padding(0)
             };
             editorContainerPanel.Controls.Add(codeEditor);
             editorContainerPanel.Controls.Add(lineNumbersRtb);
-
 
             tabPage.Controls.Add(editorContainerPanel);
             tabControlEditor.TabPages.Add(tabPage);
@@ -179,9 +222,9 @@ namespace Compiladores
             if (totalLines == 0) totalLines = 1;
 
             lineNumbersRtb.SuspendLayout();
-            if (lineNumbersRtb.Lines.Length != totalLines) // Only update if number of lines changed
+            if (lineNumbersRtb.Lines.Length != totalLines)
             {
-                lineNumbersRtb.Text = ""; // Clear and rebuild
+                lineNumbersRtb.Text = "";
                 for (int i = 1; i <= totalLines; i++)
                 {
                     lineNumbersRtb.AppendText(i + "\n");
@@ -190,7 +233,7 @@ namespace Compiladores
                 lineNumbersRtb.SelectionAlignment = HorizontalAlignment.Right;
                 lineNumbersRtb.DeselectAll();
             }
-            lineNumbersRtb.ResumeLayout(false); // false to avoid immediate repaint if not needed
+            lineNumbersRtb.ResumeLayout(false);
 
             ScrollLineNumbers(editor, lineNumbersRtb);
         }
@@ -201,22 +244,20 @@ namespace Compiladores
 
             int firstVisibleLineEditor = (int)SendMessage(editor.Handle, EM_GETFIRSTVISIBLELINE, IntPtr.Zero, IntPtr.Zero);
             
-            // For RichTextBox, scrolling can be tricky. We try to match the first visible line.
             if (lineNumbers.Lines.Length > firstVisibleLineEditor && firstVisibleLineEditor >= 0)
             {
-                // Prevent recursive calls if this method itself triggers a scroll event indirectly
                 if (lineNumbers.Tag is bool && (bool)lineNumbers.Tag) return;
-                lineNumbers.Tag = true; // Mark as currently scrolling
+                lineNumbers.Tag = true;
 
                 int targetCharIndex = lineNumbers.GetFirstCharIndexFromLine(firstVisibleLineEditor);
                 if (targetCharIndex >=0 && targetCharIndex < lineNumbers.TextLength) {
                     lineNumbers.Select(targetCharIndex, 0);
-                } else if (firstVisibleLineEditor == 0) { // If first line is visible, ensure selection is at start
+                } else if (firstVisibleLineEditor == 0) {
                      lineNumbers.Select(0,0);
                 }
                 lineNumbers.ScrollToCaret();
                 
-                lineNumbers.Tag = false; // Unmark
+                lineNumbers.Tag = false;
             }
         }
         
@@ -235,8 +276,7 @@ namespace Compiladores
                 }
             }
         }
-
-        // Corrected: RichTextBox has SelectionChanged
+        
         private void Editor_SelectionChanged(object sender, EventArgs e)
         {
             var currentEditor = sender as RichTextBox;
@@ -256,8 +296,7 @@ namespace Compiladores
             int col = index - firstCharOfLine + 1;
             lblLineInfoStatus.Text = $"Línea: {line}, Col: {col}";
         }
-
-        // Corrected: RichTextBox has VScroll
+        
         private void Editor_VScroll(object sender, EventArgs e)
         {
             var currentEditor = sender as RichTextBox;
@@ -339,38 +378,17 @@ namespace Compiladores
         }
 
         private void BtnSaveFile_Click(object sender, EventArgs e) => SaveCurrentTab();
-
-        private void BtnCompile_Click(object sender, EventArgs e)
-        {
-            if (tabControlEditor.SelectedTab == null) { txtOutput.Text = "No file to compile."; return; }
-            var state = tabControlEditor.SelectedTab.Tag as EditorTabState;
-            if (state == null || state.EditorControl == null) { txtOutput.Text = "Error accessing current editor."; return; }
-
-            if (string.IsNullOrEmpty(state.FilePath) || state.HasUnsavedChanges)
-            {
-                if (!SaveCurrentTab()) { txtOutput.Text = "Compilation cancelled: File not saved."; return; }
-            }
-            if (string.IsNullOrEmpty(state.FilePath)) { txtOutput.Text = "Cannot compile without a valid file path."; return; }
-
-            try
-            {
-                var writer = new StringWriter(); Console.SetOut(writer);
-                Compiler.Compile(new[] { state.FilePath });
-                writer.Flush(); txtOutput.Text = writer.ToString();
-            }
-            catch (Exception ex) { txtOutput.Text = $"Error: {ex.Message}\n{ex.StackTrace}"; }
-        }
-
+        
         private void TabControlEditor_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateLineNumbersForCurrentTab(); // Call the new method
+            UpdateLineNumbersForCurrentTab();
             if (tabControlEditor.SelectedTab != null)
             {
                 var state = tabControlEditor.SelectedTab.Tag as EditorTabState;
                 if (state != null && state.EditorControl != null)
                 {
                     UpdateEditorInfo(state.EditorControl);
-                    state.EditorControl.Focus(); // Set focus to the editor of the selected tab
+                    state.EditorControl.Focus();
                 } else {
                      lblLineInfoStatus.Text = "";
                 }
@@ -378,8 +396,7 @@ namespace Compiladores
                 lblLineInfoStatus.Text = "";
             }
         }
-
-        // New method to update line numbers for the currently selected tab
+        
         private void UpdateLineNumbersForCurrentTab()
         {
             if (tabControlEditor.SelectedTab != null)
@@ -396,7 +413,7 @@ namespace Compiladores
         {
             try
             {
-                if (e.Index < 0 || e.Index >= tabControlEditor.TabCount) return; // Bounds check
+                if (e.Index < 0 || e.Index >= tabControlEditor.TabCount) return;
                 TabPage page = tabControlEditor.TabPages[e.Index];
                 e.Graphics.FillRectangle(new SolidBrush(page.BackColor), e.Bounds);
                 Rectangle paddedBounds = e.Bounds;
@@ -407,7 +424,7 @@ namespace Compiladores
                 e.Graphics.DrawString("x", e.Font, Brushes.Black, closeButton);
                 e.DrawFocusRectangle();
             }
-            catch { /* Ignore drawing errors if tab is being closed rapidly */ }
+            catch { /* Ignorar errores de dibujado */ }
         }
 
         private void TabControlEditor_MouseClick(object sender, MouseEventArgs e)
@@ -437,9 +454,11 @@ namespace Compiladores
         {
             public string FilePath { get; set; }
             public bool HasUnsavedChanges { get; set; }
-            public RichTextBox EditorControl { get; set; } // Changed to RichTextBox
+            public RichTextBox EditorControl { get; set; }
             public RichTextBox LineNumbersControl { get; set; }
             public EditorTabState() { HasUnsavedChanges = false; }
         }
+
+        #endregion
     }
 }

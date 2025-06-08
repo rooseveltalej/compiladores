@@ -1,19 +1,31 @@
-// testObjects.mcs
-// testObjects.mcs
-class TestObjects { // Esta es la clase que coincide con la regla 'program'
+class TestObjectProgram
+{
+    // La clase Point se declara DENTRO de la clase principal
+	class Point 
+	{
+		int x;
+		int y;
+	}
 
-    class Point {   // Point es ahora una CLASE ANIDADA
-        int x;
-        int y;
-    }
+    void Main()
+    {
+        Point p;
+        p = new Point();
 
-    Point globalP; 
+        write("--- INICIO DEL TEST DE OBJETOS ---");
 
-    void Main() {
-        Point localP;   
-        // ... el resto de tu código Main
-        write("Probando creacion de objeto localP...");
-        localP = new Point(); 
-        write("localP creado.");
+        p.x = 100;
+        p.y = 250;
+
+        write("El valor de p.x es:");
+        write(p.x);
+
+        write("El valor de p.y es:");
+        write(p.y);
+        
+        write("La suma de p.x + p.y es:");
+        write(p.x + p.y);
+
+        write("--- FIN DEL TEST DE OBJETOS ---");
     }
 }

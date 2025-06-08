@@ -1,0 +1,35 @@
+﻿class TestReadProgram
+{
+    void Main()
+    {
+        int numero;
+        char caracter;
+        double real;
+
+        write("--- INICIO DEL TEST DE LECTURA ---");
+        
+        // Prueba de lectura de un entero
+        write(""); // Linea en blanco para separar
+        write("Por favor, ingrese un número entero:");
+        read(numero);
+        write("Usted ingresó el número: ");
+        write(numero);
+        
+        // Prueba de lectura de un caracter
+        write("");
+        write("Ahora, por favor ingrese un caracter:");
+        read(caracter);
+        write("Usted ingresó el caracter: ");
+        write(caracter);
+        
+        // Prueba de lectura de un double
+        write("");
+        write("Finalmente, ingrese un número con decimales (ej. 123.45):");
+        read(real);
+        write("Usted ingresó el número real: ");
+        write(real);
+
+        write("");
+        write("--- FIN DEL TEST DE LECTURA ---");
+    }
+}

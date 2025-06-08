@@ -12,7 +12,7 @@ namespace Compiladores
     {
         public static void Compile(string[] args)
         {
-            string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\testArraysAccess.mcs";
+            string filePath = @"C:\Users\Bayron\RiderProjects\compiladores\finalIntegrationTest.mcs";
 
             if (args.Length > 0)
                 filePath = args[0];
@@ -103,13 +103,12 @@ namespace Compiladores
                     {
                         Console.WriteLine($"Code Generation SKIPPED: {nie.Message}");
                     }
-                    catch (TargetInvocationException tie) // Captura específicamente TargetInvocationException
+                    catch (TargetInvocationException tie)
                     {
                         Console.WriteLine($"RUNTIME ERROR in generated code: {tie.Message}");
                         if (tie.InnerException != null)
                         {
                             Console.WriteLine("--- Inner Exception ---");
-                            // Imprime toda la información de la InnerException, incluyendo su tipo y traza de pila
                             Console.WriteLine(tie.InnerException.ToString());
                             Console.WriteLine("--- End Inner Exception ---");
                         }
@@ -117,9 +116,9 @@ namespace Compiladores
                         {
                             Console.WriteLine("No Inner Exception details available.");
                         }
-                        Console.WriteLine(tie.StackTrace); // Traza de la TargetInvocationException
+                        Console.WriteLine(tie.StackTrace);
                     }
-                    catch (Exception cgEx) // Captura otras excepciones de generación de código o ejecución
+                    catch (Exception cgEx)
                     {
                         Console.WriteLine($"Code Generation or other FAILED: {cgEx.Message}");
                         Console.WriteLine(cgEx.StackTrace);

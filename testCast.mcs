@@ -1,0 +1,41 @@
+﻿class TestCastProgram
+{
+    void Main()
+    {
+        double d;
+        int i;
+        char c;
+
+        write("--- INICIO DEL TEST DE CASTEO ---");
+
+        d = 99.8;
+        i = (int) d; // Casteo de double a int (debe truncar)
+        
+        write("");
+        write("Casteando el double 99.8 a int...");
+        write(i); // Salida esperada: 99
+
+        i = 65;
+        c = (char) i; // Casteo de int a char
+
+        write("");
+        write("Casteando el int 65 a char...");
+        write(c); // Salida esperada: A
+
+        d = (double) i; // Casteo de int a double
+        
+        write("");
+        write("Casteando el int 65 a double...");
+        write(d); // Salida esperada: 65
+
+        c = 'X';
+        i = (int) c; // Casteo de char a int
+
+        write("");
+        write("Casteando el char 'X' a int...");
+        write(i); // Salida esperada: 88
+
+        write("");
+        write("--- FIN DEL TEST DE CASTEO ---");
+    }
+}
