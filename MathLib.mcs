@@ -1,0 +1,14 @@
+// Archivo: MathLib.mcs
+class MathLib {
+    // La clase principal del archivo debe tener el mismo nombre que el archivo.
+
+    int Add(int a, int b) {
+        return a + b;
+    }
+
+    void Main() {
+        // Este Main no se ejecutará cuando el archivo es importado,
+        // pero es bueno tenerlo para poder probar el módulo de forma independiente.
+        write("MathLib compilado y listo.");
+    }
+}

@@ -417,47 +417,93 @@ namespace Compiladores.Checker
         }
 
 
-       public override Type VisitDesignatorFactor(MiniCSharpParser.DesignatorFactorContext context)
+        public override Type VisitDesignatorFactor(MiniCSharpParser.DesignatorFactorContext context)
         {
-            Type designatorType = Visit(context.designator()); // Esto ya llamará a StoreAndReturnType para el designador
-            if (context.LPAREN() != null) 
+            // Si no es una llamada a método (no hay paréntesis)
+            if (context.LPAREN() == null)
             {
-                if (designatorType.Kind == TypeKind.Error) return StoreAndReturnType(context, Type.Error);
-                Symbol potentialMethodSymbol;
-                var designatorCtx = context.designator();
-                string methodName;
-                if (designatorCtx.DOT().Length > 0) 
+                Type designatorType = Visit(context.designator());
+                Symbol baseDesignatorSymbol = _symbolTable.Search(context.designator().IDENT(0).GetText());
+                if (baseDesignatorSymbol is MethodSymbol && context.designator().ChildCount == 1)
                 {
-                     AddError("Complex method calls like 'object.method()' are not fully supported in this checker stage yet.", context);
-                     potentialMethodSymbol = _symbolTable.Search(designatorCtx.IDENT().Last().GetText());
-                     methodName = designatorCtx.IDENT().Last().GetText();
-                } else { 
-                     methodName = designatorCtx.IDENT(0).GetText();
-                     potentialMethodSymbol = _symbolTable.Search(methodName);
+                    AddError($"Method name '{context.designator().GetText()}' used as a value without calling it.", context.designator());
+                    return StoreAndReturnType(context, Type.Error);
                 }
+                return StoreAndReturnType(context, designatorType);
+            }
+            else // Es una llamada a método, ej: myMath.Add() o Add()
+            {
+                var designatorCtx = context.designator();
+                Symbol potentialMethodSymbol = null;
+                string methodName = "";
+
+                if (designatorCtx.DOT().Length > 0) // Es una llamada de la forma: object.method()
+                {
+                    // 1. Resolvemos el SÍMBOLO del objeto (ej. myMath)
+                    string objectName = designatorCtx.IDENT(0).GetText();
+                    Symbol objectSymbol = _symbolTable.Search(objectName);
+
+                    if (objectSymbol == null)
+                    {
+                        AddError($"Object '{objectName}' not declared.", designatorCtx.IDENT(0));
+                        return StoreAndReturnType(context, Type.Error);
+                    }
+
+                    // 2. Obtenemos el TIPO del objeto (ej. ClassType "MathLib")
+                    if (objectSymbol.Type is ClassType classType)
+                    {
+                        methodName = designatorCtx.IDENT().Last().GetText();
+                        // 3. Buscamos el método DENTRO de los miembros de la clase del objeto.
+                        potentialMethodSymbol = classType.Members.Find(methodName);
+                    }
+                    else
+                    {
+                        AddError($"Identifier '{objectSymbol.Name}' is not a class or object instance, cannot call a method on it.", designatorCtx);
+                        return StoreAndReturnType(context, Type.Error);
+                    }
+                }
+                else // Es una llamada simple: method()
+                {
+                    methodName = designatorCtx.IDENT(0).GetText();
+                    potentialMethodSymbol = _symbolTable.Search(methodName);
+                }
+
+                // --- El resto de la lógica para validar el método y sus parámetros ---
                 if (potentialMethodSymbol == null || !(potentialMethodSymbol is MethodSymbol methodSymbol))
-                { AddError($"'{methodName}' is not a method or not declared.", context.designator()); return StoreAndReturnType(context, Type.Error); }
+                {
+                    AddError($"'{methodName}' is not a method or not declared in the given context.", context.designator());
+                    return StoreAndReturnType(context, Type.Error);
+                }
+
                 List<Type> actualParamTypes = new List<Type>();
                 if (context.actPars() != null)
-                { foreach (var exprCtx in context.actPars().expr()) { actualParamTypes.Add(Visit(exprCtx)); } }
+                {
+                    foreach (var exprCtx in context.actPars().expr())
+                    {
+                        actualParamTypes.Add(Visit(exprCtx));
+                    }
+                }
+
                 if (methodSymbol.Parameters.Count != actualParamTypes.Count)
-                { IParseTree errorContext = context.actPars() != null ? (IParseTree)context.actPars() : (IParseTree)context.LPAREN(); AddError($"Method '{methodSymbol.Name}' expects {methodSymbol.Parameters.Count} arguments, but got {actualParamTypes.Count}.", errorContext); return StoreAndReturnType(context, Type.Error); }
+                {
+                    IParseTree errorContext = context.actPars() ?? (IParseTree)context.LPAREN();
+                    AddError($"Method '{methodSymbol.Name}' expects {methodSymbol.Parameters.Count} arguments, but got {actualParamTypes.Count}.", errorContext);
+                    return StoreAndReturnType(context, Type.Error);
+                }
+
                 for (int i = 0; i < methodSymbol.Parameters.Count; i++)
                 {
-                    if (actualParamTypes[i].Kind == TypeKind.Error) continue; 
+                    if (actualParamTypes[i].Kind == TypeKind.Error) continue;
                     if (!AreTypesCompatible(methodSymbol.Parameters[i].Type, actualParamTypes[i]))
-                    { AddError($"Type mismatch for argument {i + 1} of method '{methodSymbol.Name}'. Expected '{methodSymbol.Parameters[i].Type}', got '{actualParamTypes[i]}'.", context.actPars().expr(i)); }
+                    {
+                        AddError($"Type mismatch for argument {i + 1} of method '{methodSymbol.Name}'. Expected '{methodSymbol.Parameters[i].Type}', got '{actualParamTypes[i]}'.", context.actPars().expr(i));
+                    }
                 }
-                return StoreAndReturnType(context, methodSymbol.Type); // El tipo de una llamada a método es su tipo de retorno
-            }
-            else 
-            {
-                 Symbol baseDesignatorSymbol = _symbolTable.Search(context.designator().IDENT(0).GetText());
-                 if (baseDesignatorSymbol is MethodSymbol && context.designator().ChildCount == 1) 
-                 { AddError($"Method name '{context.designator().GetText()}' used as a value without calling it.", context.designator()); return StoreAndReturnType(context, Type.Error); }
-                    return StoreAndReturnType(context, designatorType); // Si es solo un designador, su tipo es el que VisitDesignator determinó
+
+                return StoreAndReturnType(context, methodSymbol.Type); // Devuelve el tipo de retorno del método.
             }
         }
+
         private bool AreTypesCompatible(Type formalType, Type actualType)
         {
             if (formalType.Kind == TypeKind.Error || actualType.Kind == TypeKind.Error) return true;
@@ -830,47 +876,40 @@ namespace Compiladores.Checker
         {
             if (context.qualifiedIdent() != null)
             {
-                string moduleName = context.qualifiedIdent().GetText(); // Ej: "MyUtilities"
+                string moduleName = context.qualifiedIdent().GetText();
 
-                // No necesitamos pasar currentFileDirectory explícitamente si CompilationManager lo puede obtener
-                // del 'callingChecker.CurrentFilePath'
-                ClassSymbol importedClassSymbol = _compilationManager.GetOrCompileModule(moduleName, this);
+                var importedModule = _compilationManager.GetOrCompileModule(moduleName, this);
 
-                if (importedClassSymbol != null)
+                if (importedModule != null)
                 {
+                    ClassSymbol importedClassSymbol = importedModule.Item1;
+
                     Scope globalScope = _symbolTable.GetGlobalScope();
 
                     if (globalScope.FindCurrent(moduleName) != null)
                     {
                         Symbol existing = globalScope.FindCurrent(moduleName);
-                        // Es un error si ya existe algo con ese nombre que no sea EXACTAMENTE la misma clase importada
-                        // (lo cual es difícil de verificar sin comparar identidades de ClassSymbol de diferentes compilaciones)
-                        // Una simplificación: si ya existe y es una ClassSymbol con el mismo nombre de tipo, lo consideramos ok.
-                        // Si es otro tipo de símbolo, es un error.
-                        if (!(existing is ClassSymbol && existing.Type.Name == importedClassSymbol.Name)) {
-                           AddError($"Using directive for '{moduleName}' conflicts with an existing global definition of a different kind/type.", context.qualifiedIdent());
+                        if (!(existing is ClassSymbol && existing.Type.Name == importedClassSymbol.Name))
+                        {
+                            AddError($"Using directive for '{moduleName}' conflicts with an existing global definition.", context.qualifiedIdent());
                         }
-                        // Si ya fue importado y es el mismo, no hacer nada.
                     }
                     else
                     {
-                        // Crear un nuevo ClassSymbol en la tabla de ESTE archivo que representa el tipo importado.
-                        // Este nuevo símbolo usa el ClassType del símbolo original (que contiene los miembros).
                         ClassSymbol symbolForCurrentTable = new ClassSymbol(importedClassSymbol.Name, (ClassType)importedClassSymbol.Type);
-                        symbolForCurrentTable.Level = _symbolTable.GetGlobalScopeLevel(); // Nivel global (0)
-                        symbolForCurrentTable.Decl = context; // La 'declaración' es la propia directiva using
+                        symbolForCurrentTable.Level = _symbolTable.GetGlobalScopeLevel();
+                        symbolForCurrentTable.Decl = context;
 
                         if (!globalScope.TryInsert(symbolForCurrentTable))
                         {
-                            // Esto no debería pasar si FindCurrent era null, pero por si acaso.
-                            AddError($"Failed to make type '{moduleName}' available via using directive (unexpected symbol table insertion error).", context.qualifiedIdent());
+                            AddError($"Failed to make type '{moduleName}' available via using directive.", context.qualifiedIdent());
                         }
                     }
                 }
-                // Si importedClassSymbol es null, GetOrCompileModule ya habrá añadido el error a este checker.
             }
             return Type.Void;
         }
+
 
         public override Type VisitQualifiedIdent(MiniCSharpParser.QualifiedIdentContext context)
         {

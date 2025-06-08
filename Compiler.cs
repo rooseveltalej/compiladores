@@ -70,12 +70,14 @@ namespace Compiladores
                     try
                     {
                         var codeGenerator = new MiniCSharpCodeGenerator(
+                            compilationManager,
                             mainSymbolTable,
                             filePath,
                             "InMemoryAssembly",
                             semanticChecker.ExpressionTypes
                         );
-                        
+
+
                         var mainClassType = codeGenerator.GenerateAssemblyAndGetMainType(tree);
 
                         if (mainClassType != null)
@@ -108,7 +110,7 @@ namespace Compiladores
                         {
                             Console.WriteLine("--- Inner Exception ---");
                             // Imprime toda la información de la InnerException, incluyendo su tipo y traza de pila
-                            Console.WriteLine(tie.InnerException.ToString()); 
+                            Console.WriteLine(tie.InnerException.ToString());
                             Console.WriteLine("--- End Inner Exception ---");
                         }
                         else

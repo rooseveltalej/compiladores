@@ -39,13 +39,17 @@ namespace Compiladores.CodeGen
         private Stack<System.Reflection.Emit.Label> _breakLabelStack = new Stack<System.Reflection.Emit.Label>();
 
         public Dictionary<IParseTree, Compiladores.Checker.Type> ExpressionTypes { get; }
+        private readonly CompilationManager _compilationManager; // 1. AÑADE ESTE CAMPO
 
-        public MiniCSharpCodeGenerator(TablaSimbolos symbolTable, string sourceFilePath, string assemblyName, Dictionary<IParseTree, Compiladores.Checker.Type> expressionTypes)
+
+        public MiniCSharpCodeGenerator(CompilationManager manager, TablaSimbolos symbolTable, string sourceFilePath, string assemblyName, Dictionary<IParseTree, Compiladores.Checker.Type> expressionTypes)
         {
+            _compilationManager = manager; // Se asigna el nuevo parámetro
             _symbolTable = symbolTable;
             _assemblyNameBase = assemblyName;
             ExpressionTypes = expressionTypes;
         }
+
 
         public System.Type GenerateAssemblyAndGetMainType(MiniCSharpParser.ProgramContext programContext)
         {
@@ -80,7 +84,7 @@ namespace Compiladores.CodeGen
 
         private System.Type ResolveNetType(Compiladores.Checker.Type miniCSharpType)
         {
-            if (miniCSharpType == null) throw new ArgumentNullException(nameof(miniCSharpType), "El tipo MiniCSharp no puede ser null.");
+            if (miniCSharpType == null) throw new ArgumentNullException(nameof(miniCSharpType));
             switch (miniCSharpType.Kind)
             {
                 case TypeKind.Int: return typeof(int);
@@ -89,45 +93,42 @@ namespace Compiladores.CodeGen
                 case TypeKind.Bool: return typeof(bool);
                 case TypeKind.String: return typeof(string);
                 case TypeKind.Void: return typeof(void);
-                case TypeKind.Null: return typeof(object); 
+                case TypeKind.Null: return typeof(object);
                 case TypeKind.Array:
-                    var arrayType = (ArrayType)miniCSharpType; 
-                    System.Type elementType = ResolveNetType(arrayType.ElementType); 
-                    
+                    var arrayType = (ArrayType)miniCSharpType;
+                    System.Type elementType = ResolveNetType(arrayType.ElementType);
                     if (elementType is TypeBuilder elementTb && !elementTb.IsCreated())
                     {
-                         Console.WriteLine($"Warning (ResolveNetType for Array Element): Type '{elementTb.FullName}' for array element was not yet created. Forcing creation.");
-                         elementTb.CreateTypeInfo(); 
-                         elementType = elementTb.AsType(); 
+                        elementTb.CreateTypeInfo();
+                        elementType = elementTb.AsType();
                     }
                     return elementType.MakeArrayType();
-                case TypeKind.Class: 
-                    Symbol classDefSymbol = _symbolTable.SearchGlobal(miniCSharpType.Name); 
-                    if (classDefSymbol == null && _currentCodeGenScope != null) { 
-                        classDefSymbol = _currentCodeGenScope.Find(miniCSharpType.Name);
-                    }
+                case TypeKind.Class:
+                    Symbol classDefSymbol = _symbolTable.SearchGlobal(miniCSharpType.Name) ?? _currentCodeGenScope?.Find(miniCSharpType.Name);
 
                     if (classDefSymbol is ClassSymbol userClassSymbol && _definedTypes.TryGetValue(userClassSymbol, out TypeBuilder tb))
                     {
-                        if (!tb.IsCreated())
-                        {
-                            Console.WriteLine($"Warning (ResolveNetType): Type '{tb.FullName}' for user class was not yet created. Forcing creation.");
-                            tb.CreateTypeInfo(); 
-                        }
-                        return tb.AsType(); 
+                        if (!tb.IsCreated()) tb.CreateTypeInfo();
+                        return tb.AsType();
                     }
-                    
+
+                    // Lógica NUEVA para buscar en módulos compilados
+                    if (_compilationManager != null && _compilationManager._compiledModulesCache.TryGetValue(miniCSharpType.Name, out var compiledModule))
+                    {
+                        return compiledModule.Item2; // Devuelve el System.Type cacheado
+                    }
+
                     if (miniCSharpType.Name == "Console") return typeof(System.Console);
-                    // Asegúrate que el namespace aquí coincida con MiniCSharpRuntimeHelpers.cs
-                    if (miniCSharpType.Name == "MiniCSharpRuntimeHelpers") return typeof(Compiladores.MiniCSharpRuntimeHelpers); 
-                    
-                    Console.WriteLine($"Advertencia (ResolveNetType): No se pudo resolver el tipo .NET para la clase '{miniCSharpType.Name}'. Usando 'object'.");
-                    return typeof(object); 
+                    if (miniCSharpType.Name == "MiniCSharpRuntimeHelpers") return typeof(Compiladores.MiniCSharpRuntimeHelpers);
+
+                    Console.Error.WriteLine($"Advertencia (ResolveNetType): No se pudo resolver el tipo .NET para la clase '{miniCSharpType.Name}'. Usando 'object'.");
+                    return typeof(object);
                 default:
-                    Console.Error.WriteLine($"Error Crítico (ResolveNetType): Tipo MiniCSharp no soportado para conversión: {miniCSharpType.Kind} ('{miniCSharpType.Name}')");
-                    return typeof(object); 
+                    Console.Error.WriteLine($"Error Crítico (ResolveNetType): Tipo no soportado: {miniCSharpType.Name}");
+                    return typeof(object);
             }
         }
+
 
         public override object VisitProgram(MiniCSharpParser.ProgramContext context)
         {
@@ -1056,38 +1057,38 @@ namespace Compiladores.CodeGen
         private void HandleMethodCall(MiniCSharpParser.DesignatorContext designatorCtx, MiniCSharpParser.ActParsContext actParsCtx)
         {
             MethodSymbol resolvedMethodSymbol = ResolveDesignatorToCallableSymbol(designatorCtx);
-            MethodBase methodToCall = null; 
+            MethodBase methodToCall = null;
 
             if (resolvedMethodSymbol != null && resolvedMethodSymbol.Name == "len")
             {
                 if (_ilGenerator == null)
                 {
-                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - len): ILGenerator is null.");
-                     return;
+                    Console.Error.WriteLine("CodeGen Error (HandleMethodCall - len): ILGenerator is null.");
+                    return;
                 }
                 if (actParsCtx == null || actParsCtx.expr().Length != 1)
                 {
                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - len): La función 'len' espera 1 argumento (un array).");
-                    if (actParsCtx != null) foreach (var argExpr_len in actParsCtx.expr()) if(GetExpressionType(argExpr_len)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
-                    _ilGenerator.Emit(OpCodes.Ldc_I4_M1); 
+                    if (actParsCtx != null) foreach (var argExpr_len in actParsCtx.expr()) if (GetExpressionType(argExpr_len) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    _ilGenerator.Emit(OpCodes.Ldc_I4_M1);
                     return;
                 }
 
                 var arrayExpr_len = actParsCtx.expr(0);
-                Visit(arrayExpr_len); 
+                Visit(arrayExpr_len);
 
                 Compiladores.Checker.Type arrayExprType_len = GetExpressionType(arrayExpr_len);
                 if (arrayExprType_len.Kind != TypeKind.Array)
                 {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - len): El argumento para 'len' debe ser un array, se obtuvo {arrayExprType_len.Name}.");
-                    if (arrayExprType_len != Compiladores.Checker.Type.Void && arrayExprType_len != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
-                    _ilGenerator.Emit(OpCodes.Ldc_I4_M1); 
+                    if (arrayExprType_len != Compiladores.Checker.Type.Void && arrayExprType_len != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
+                    _ilGenerator.Emit(OpCodes.Ldc_I4_M1);
                     return;
                 }
 
                 _ilGenerator.Emit(OpCodes.Ldlen);
-                _ilGenerator.Emit(OpCodes.Conv_I4); 
-                return; 
+                _ilGenerator.Emit(OpCodes.Conv_I4);
+                return;
             }
             else if (resolvedMethodSymbol != null && resolvedMethodSymbol.Name == "add")
             {
@@ -1095,12 +1096,12 @@ namespace Compiladores.CodeGen
                 if (actParsCtx == null || actParsCtx.expr().Length != 2)
                 {
                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - add): La función 'add' espera 2 argumentos (array, elemento).");
-                    if (actParsCtx != null) foreach (var argExpr_add in actParsCtx.expr()) if(GetExpressionType(argExpr_add)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actParsCtx != null) foreach (var argExpr_add in actParsCtx.expr()) if (GetExpressionType(argExpr_add) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
 
-                var arrayArgExprCtx = actParsCtx.expr(0); 
-                var elementArgExprCtx = actParsCtx.expr(1); 
+                var arrayArgExprCtx = actParsCtx.expr(0);
+                var elementArgExprCtx = actParsCtx.expr(1);
 
                 MiniCSharpParser.DesignatorContext arrayDesignatorCtx = null;
                 if (arrayArgExprCtx.term(0)?.factor(0) is MiniCSharpParser.DesignatorFactorContext dfCtx)
@@ -1109,35 +1110,36 @@ namespace Compiladores.CodeGen
                 }
                 if (arrayDesignatorCtx == null)
                 {
-                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - add): El primer argumento para 'add' debe ser una variable de array (designador).");
-                     Visit(arrayArgExprCtx); if(GetExpressionType(arrayArgExprCtx) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); 
-                     Visit(elementArgExprCtx); if(GetExpressionType(elementArgExprCtx) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop); 
-                     return;
+                    Console.Error.WriteLine("CodeGen Error (HandleMethodCall - add): El primer argumento para 'add' debe ser una variable de array (designador).");
+                    Visit(arrayArgExprCtx); if (GetExpressionType(arrayArgExprCtx) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    Visit(elementArgExprCtx); if (GetExpressionType(elementArgExprCtx) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    return;
                 }
-                
-                Visit(arrayArgExprCtx); 
+
+                Visit(arrayArgExprCtx);
                 Compiladores.Checker.Type actualArrayType = GetExpressionType(arrayArgExprCtx);
-                 if (actualArrayType.Kind != TypeKind.Array) {
+                if (actualArrayType.Kind != TypeKind.Array)
+                {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - add): El primer argumento para 'add' debe ser un array, se obtuvo {actualArrayType.Name}.");
-                     if (actualArrayType != Compiladores.Checker.Type.Void && actualArrayType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
-                     Visit(elementArgExprCtx); if(GetExpressionType(elementArgExprCtx) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actualArrayType != Compiladores.Checker.Type.Void && actualArrayType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
+                    Visit(elementArgExprCtx); if (GetExpressionType(elementArgExprCtx) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
                 ArrayType arrMetaType = (ArrayType)actualArrayType;
                 Compiladores.Checker.Type elementMetaType = arrMetaType.ElementType;
 
-                Visit(elementArgExprCtx); 
+                Visit(elementArgExprCtx);
                 Compiladores.Checker.Type actualElementType = GetExpressionType(elementArgExprCtx);
-                
+
                 System.Type helperParamArrayNetType = ResolveNetType(actualArrayType);
-                System.Type helperParamElementNetType = ResolveNetType(elementMetaType); 
+                System.Type helperParamElementNetType = ResolveNetType(elementMetaType);
                 System.Type actualElementNetTypeOnStack = ResolveNetType(actualElementType);
 
                 if (helperParamElementNetType == typeof(double) && actualElementNetTypeOnStack == typeof(int))
                 {
                     _ilGenerator.Emit(OpCodes.Conv_R8);
                 }
-                
+
                 MethodInfo helperMethodInfo_add = null;
                 if (elementMetaType == Compiladores.Checker.Type.Int)
                     helperMethodInfo_add = typeof(MiniCSharpRuntimeHelpers).GetMethod("AddIntElement", new[] { typeof(int[]), typeof(int) });
@@ -1145,18 +1147,18 @@ namespace Compiladores.CodeGen
                     helperMethodInfo_add = typeof(MiniCSharpRuntimeHelpers).GetMethod("AddCharElement", new[] { typeof(char[]), typeof(char) });
                 else if (elementMetaType == Compiladores.Checker.Type.Double)
                     helperMethodInfo_add = typeof(MiniCSharpRuntimeHelpers).GetMethod("AddDoubleElement", new[] { typeof(double[]), typeof(double) });
-                
+
                 if (helperMethodInfo_add == null)
                 {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - add): No se encontró un helper Add para el tipo de elemento {elementMetaType.Name}.");
-                    if (actualElementType != Compiladores.Checker.Type.Void && actualElementType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
-                    if (actualArrayType != Compiladores.Checker.Type.Void && actualArrayType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
+                    if (actualElementType != Compiladores.Checker.Type.Void && actualElementType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actualArrayType != Compiladores.Checker.Type.Void && actualArrayType != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
 
-                _ilGenerator.Emit(OpCodes.Call, helperMethodInfo_add); 
-                EmitStoreToDesignator(arrayDesignatorCtx, actualArrayType); 
-                return; 
+                _ilGenerator.Emit(OpCodes.Call, helperMethodInfo_add);
+                EmitStoreToDesignator(arrayDesignatorCtx, actualArrayType);
+                return;
             }
             else if (resolvedMethodSymbol != null && resolvedMethodSymbol.Name == "del")
             {
@@ -1164,12 +1166,12 @@ namespace Compiladores.CodeGen
                 if (actParsCtx == null || actParsCtx.expr().Length != 2)
                 {
                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - del): La función 'del' espera 2 argumentos (array, index).");
-                    if (actParsCtx != null) foreach (var argExpr_del in actParsCtx.expr()) if(GetExpressionType(argExpr_del)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actParsCtx != null) foreach (var argExpr_del in actParsCtx.expr()) if (GetExpressionType(argExpr_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
 
-                var arrayArgExprCtx_del = actParsCtx.expr(0);    
-                var indexArgExprCtx_del = actParsCtx.expr(1);    
+                var arrayArgExprCtx_del = actParsCtx.expr(0);
+                var indexArgExprCtx_del = actParsCtx.expr(1);
 
                 MiniCSharpParser.DesignatorContext arrayDesignatorCtx_del = null;
                 if (arrayArgExprCtx_del.term(0)?.factor(0) is MiniCSharpParser.DesignatorFactorContext dfCtx_del)
@@ -1178,30 +1180,32 @@ namespace Compiladores.CodeGen
                 }
                 if (arrayDesignatorCtx_del == null)
                 {
-                     Console.Error.WriteLine("CodeGen Error (HandleMethodCall - del): El primer argumento para 'del' debe ser una variable de array (designador).");
-                     Visit(arrayArgExprCtx_del); if(GetExpressionType(arrayArgExprCtx_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
-                     Visit(indexArgExprCtx_del); if(GetExpressionType(indexArgExprCtx_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
-                     return;
+                    Console.Error.WriteLine("CodeGen Error (HandleMethodCall - del): El primer argumento para 'del' debe ser una variable de array (designador).");
+                    Visit(arrayArgExprCtx_del); if (GetExpressionType(arrayArgExprCtx_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    Visit(indexArgExprCtx_del); if (GetExpressionType(indexArgExprCtx_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    return;
                 }
-                Visit(arrayArgExprCtx_del); 
+                Visit(arrayArgExprCtx_del);
                 Compiladores.Checker.Type actualArrayType_del = GetExpressionType(arrayArgExprCtx_del);
-                 if (actualArrayType_del.Kind != TypeKind.Array) {
+                if (actualArrayType_del.Kind != TypeKind.Array)
+                {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - del): El primer argumento para 'del' debe ser un array, se obtuvo {actualArrayType_del.Name}.");
-                     if (actualArrayType_del != Compiladores.Checker.Type.Void && actualArrayType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
-                     Visit(indexArgExprCtx_del); if(GetExpressionType(indexArgExprCtx_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actualArrayType_del != Compiladores.Checker.Type.Void && actualArrayType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
+                    Visit(indexArgExprCtx_del); if (GetExpressionType(indexArgExprCtx_del) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
                 ArrayType arrMetaType_del = (ArrayType)actualArrayType_del;
-                Compiladores.Checker.Type elementMetaType_del = arrMetaType_del.ElementType; 
-                Visit(indexArgExprCtx_del); 
+                Compiladores.Checker.Type elementMetaType_del = arrMetaType_del.ElementType;
+                Visit(indexArgExprCtx_del);
                 Compiladores.Checker.Type actualIndexType_del = GetExpressionType(indexArgExprCtx_del);
-                if (actualIndexType_del != Compiladores.Checker.Type.Int) {
-                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - del): El segundo argumento para 'del' (index) debe ser un entero, se obtuvo {actualIndexType_del.Name}.");
-                     if (actualIndexType_del != Compiladores.Checker.Type.Void && actualIndexType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
-                     if (actualArrayType_del != Compiladores.Checker.Type.Void && actualArrayType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
+                if (actualIndexType_del != Compiladores.Checker.Type.Int)
+                {
+                    Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - del): El segundo argumento para 'del' (index) debe ser un entero, se obtuvo {actualIndexType_del.Name}.");
+                    if (actualIndexType_del != Compiladores.Checker.Type.Void && actualIndexType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actualArrayType_del != Compiladores.Checker.Type.Void && actualArrayType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
-                
+
                 MethodInfo helperMethodInfo_del = null;
                 if (elementMetaType_del == Compiladores.Checker.Type.Int)
                     helperMethodInfo_del = typeof(MiniCSharpRuntimeHelpers).GetMethod("DeleteIntElementAt", new[] { typeof(int[]), typeof(int) });
@@ -1209,22 +1213,22 @@ namespace Compiladores.CodeGen
                     helperMethodInfo_del = typeof(MiniCSharpRuntimeHelpers).GetMethod("DeleteCharElementAt", new[] { typeof(char[]), typeof(int) });
                 else if (elementMetaType_del == Compiladores.Checker.Type.Double)
                     helperMethodInfo_del = typeof(MiniCSharpRuntimeHelpers).GetMethod("DeleteDoubleElementAt", new[] { typeof(double[]), typeof(int) });
-                
+
                 if (helperMethodInfo_del == null)
                 {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall - del): No se encontró un helper Delete para el tipo de elemento {elementMetaType_del.Name}.");
-                    if (actualIndexType_del != Compiladores.Checker.Type.Void && actualIndexType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
-                    if (actualArrayType_del != Compiladores.Checker.Type.Void && actualArrayType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop); 
+                    if (actualIndexType_del != Compiladores.Checker.Type.Void && actualIndexType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actualArrayType_del != Compiladores.Checker.Type.Void && actualArrayType_del != Compiladores.Checker.Type.Error) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
 
-                _ilGenerator.Emit(OpCodes.Call, helperMethodInfo_del); 
-                
-                EmitStoreToDesignator(arrayDesignatorCtx_del, actualArrayType_del); 
-                return; 
+                _ilGenerator.Emit(OpCodes.Call, helperMethodInfo_del);
+
+                EmitStoreToDesignator(arrayDesignatorCtx_del, actualArrayType_del);
+                return;
             }
-            
-            if (resolvedMethodSymbol != null) 
+
+            if (resolvedMethodSymbol != null)
             {
                 if (_methodBuilders.TryGetValue(resolvedMethodSymbol, out MethodBuilder mb))
                 {
@@ -1232,98 +1236,140 @@ namespace Compiladores.CodeGen
                 }
                 else
                 {
-                    Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): MethodBuilder not found for resolved MethodSymbol '{resolvedMethodSymbol.Name}'.");
-                    if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if(GetExpressionType(argExpr)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
-                    return;
-                }
-            }
-            else 
-            {
-                string fullMethodName = designatorCtx.GetText();
-                if (designatorCtx.DOT().Length > 0 && designatorCtx.IDENT(0).GetText() == "Console") {
-                    string consoleMethodName = designatorCtx.IDENT(1).GetText();
-                    List<System.Type> argTypes = new List<System.Type>();
-                    if (actParsCtx != null) {
-                        foreach (var argExpr in actParsCtx.expr()) {
-                             argTypes.Add(ResolveNetType(GetExpressionType(argExpr)));
+                    var objectName = designatorCtx.IDENT(0).GetText();
+                    var objectSymbol = _currentCodeGenScope.Find(objectName);
+                    if (objectSymbol != null)
+                    {
+                        var objectType = ResolveNetType(objectSymbol.Type);
+                        if (objectType != typeof(object))
+                        {
+                            var paramTypes = resolvedMethodSymbol.Parameters.Select(p => ResolveNetType(p.Type)).ToArray();
+                            methodToCall = objectType.GetMethod(resolvedMethodSymbol.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, paramTypes, null);
                         }
                     }
-                    try {
+
+                    if (methodToCall == null)
+                    {
+                        Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): MethodBuilder/MethodInfo not found for resolved MethodSymbol '{resolvedMethodSymbol.Name}'.");
+                        if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if (GetExpressionType(argExpr) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                string fullMethodName = designatorCtx.GetText();
+                if (designatorCtx.DOT().Length > 0 && designatorCtx.IDENT(0).GetText() == "Console")
+                {
+                    string consoleMethodName = designatorCtx.IDENT(1).GetText();
+                    List<System.Type> argTypes = new List<System.Type>();
+                    if (actParsCtx != null)
+                    {
+                        foreach (var argExpr in actParsCtx.expr())
+                        {
+                            argTypes.Add(ResolveNetType(GetExpressionType(argExpr)));
+                        }
+                    }
+                    try
+                    {
                         methodToCall = typeof(System.Console).GetMethod(consoleMethodName, argTypes.ToArray());
-                        
-                        if (methodToCall == null && consoleMethodName == "WriteLine" && argTypes.Count == 1) {
+
+                        if (methodToCall == null && consoleMethodName == "WriteLine" && argTypes.Count == 1)
+                        {
                             methodToCall = typeof(System.Console).GetMethod("WriteLine", new[] { typeof(object) });
                         }
 
-                        if(methodToCall == null) {
-                             Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Could not find System.Console.{consoleMethodName} with specified argument types.");
-                             return;
+                        if (methodToCall == null)
+                        {
+                            Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Could not find System.Console.{consoleMethodName} with specified argument types.");
+                            return;
                         }
-                    } catch (AmbiguousMatchException) {
-                         Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Ambiguous match for System.Console.{consoleMethodName}.");
-                         return;
                     }
-                } else {
+                    catch (AmbiguousMatchException)
+                    {
+                        Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Ambiguous match for System.Console.{consoleMethodName}.");
+                        return;
+                    }
+                }
+                else
+                {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Could not resolve method '{designatorCtx.GetText()}' to a MethodSymbol or known external.");
-                    if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if(GetExpressionType(argExpr)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if (GetExpressionType(argExpr) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                     return;
                 }
             }
-            
-            bool isStaticCall = true; 
+
+            bool isStaticCall = true;
             bool isInstanceMethodOnThis = false;
 
             if (methodToCall is MethodBuilder mbUser) isStaticCall = mbUser.IsStatic;
             else if (methodToCall is MethodInfo miReflected) isStaticCall = miReflected.IsStatic;
 
-            if (resolvedMethodSymbol != null && !isStaticCall) 
+            if (resolvedMethodSymbol != null && !isStaticCall)
             {
-                if (designatorCtx.DOT().Length == 0) 
+                if (designatorCtx.DOT().Length == 0)
                 {
-                    if ((_currentMethodBuilder?.IsStatic ?? true)) 
+                    if ((_currentMethodBuilder?.IsStatic ?? true))
                     {
-                         Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Cannot call instance method '{resolvedMethodSymbol.Name}' from a static context without an object instance.");
-                         return;
+                        Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Cannot call instance method '{resolvedMethodSymbol.Name}' from a static context without an object instance.");
+                        return;
                     }
-                    _ilGenerator.Emit(OpCodes.Ldarg_0); 
+                    _ilGenerator.Emit(OpCodes.Ldarg_0);
                     isInstanceMethodOnThis = true;
                 }
-                 else if (designatorCtx.DOT().Length > 0) 
+                else if (designatorCtx.DOT().Length > 0)
                 {
-
+                    // Esta lógica carga el objeto sobre el que se llama el método.
+                    // Por ejemplo, para myMath.Add(), carga 'myMath' en la pila.
+                    var objectName = designatorCtx.IDENT(0).GetText();
+                    var objectSymbol = _currentCodeGenScope.Find(objectName) as VarSymbol;
+                    if (objectSymbol != null)
+                    {
+                        if (_localBuilders.TryGetValue(objectSymbol, out LocalBuilder lb)) _ilGenerator.Emit(OpCodes.Ldloc, lb);
+                        else if (_currentGeneratingMethodSymbol != null && _currentGeneratingMethodSymbol.Parameters.FirstOrDefault(p => p.Name == objectSymbol.Name && p.Level == objectSymbol.Level) is VarSymbol paramSymbol)
+                        {
+                            int paramIndex = _currentGeneratingMethodSymbol.Parameters.IndexOf(paramSymbol);
+                            _ilGenerator.Emit(OpCodes.Ldarg, (short)(_currentMethodBuilder.IsStatic ? paramIndex : paramIndex + 1));
+                        }
+                        else if (_fieldBuilders.TryGetValue(objectSymbol, out FieldBuilder fb_field))
+                        {
+                            if (!fb_field.IsStatic) _ilGenerator.Emit(OpCodes.Ldarg_0);
+                            _ilGenerator.Emit(fb_field.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fb_field);
+                        }
+                    }
                 }
             }
-            
+
             if (actParsCtx != null)
             {
-                var formalParams = resolvedMethodSymbol?.Parameters; 
+                var formalParams = resolvedMethodSymbol?.Parameters;
                 if (formalParams != null && formalParams.Count != actParsCtx.expr().Length && resolvedMethodSymbol != null)
                 {
-                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Argument count mismatch for method '{resolvedMethodSymbol.Name}'. Expected {formalParams.Count}, got {actParsCtx.expr().Length}.");
-                     if(isInstanceMethodOnThis) _ilGenerator.Emit(OpCodes.Pop); 
-                     return;
+                    Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): Argument count mismatch for method '{resolvedMethodSymbol.Name}'. Expected {formalParams.Count}, got {actParsCtx.expr().Length}.");
+                    if (isInstanceMethodOnThis) _ilGenerator.Emit(OpCodes.Pop);
+                    return;
                 }
 
                 for (int i = 0; i < actParsCtx.expr().Length; i++)
                 {
                     var argExpr = actParsCtx.expr(i);
-                    Visit(argExpr); 
+                    Visit(argExpr);
 
-                    if (formalParams != null && i < formalParams.Count) 
+                    if (formalParams != null && i < formalParams.Count)
                     {
                         Compiladores.Checker.Type formalType = formalParams[i].Type;
                         Compiladores.Checker.Type actualType = GetExpressionType(argExpr);
 
                         if (formalType == Compiladores.Checker.Type.Double && actualType == Compiladores.Checker.Type.Int)
                         {
-                            _ilGenerator.Emit(OpCodes.Conv_R8); 
+                            _ilGenerator.Emit(OpCodes.Conv_R8);
                         }
                         else if (formalType == Compiladores.Checker.Type.Int && actualType == Compiladores.Checker.Type.Double)
                         {
                             _ilGenerator.Emit(OpCodes.Conv_I4);
                         }
                     }
-                    else if (methodToCall is MethodInfo reflectedMi) 
+                    else if (methodToCall is MethodInfo reflectedMi)
                     {
                         ParameterInfo[] reflectedParams = reflectedMi.GetParameters();
                         if (i < reflectedParams.Length)
@@ -1344,43 +1390,51 @@ namespace Compiladores.CodeGen
                     }
                 }
             }
-            
+
             if (methodToCall != null)
             {
                 OpCode callInstruction;
-                if (methodToCall.IsStatic) {
+                if (methodToCall.IsStatic)
+                {
                     callInstruction = OpCodes.Call;
-                } else {
-                    if (methodToCall.DeclaringType != null && methodToCall.DeclaringType.IsValueType) {
-                        callInstruction = OpCodes.Call; 
-                    } else {
-                        callInstruction = OpCodes.Callvirt; 
+                }
+                else
+                {
+                    if (methodToCall.DeclaringType != null && methodToCall.DeclaringType.IsValueType)
+                    {
+                        callInstruction = OpCodes.Call;
+                    }
+                    else
+                    {
+                        callInstruction = OpCodes.Callvirt;
                     }
                 }
-                
-                if (methodToCall is MethodInfo mi) 
+
+                if (methodToCall is MethodInfo mi)
                 {
                     _ilGenerator.Emit(callInstruction, mi);
                 }
-                else if (methodToCall is ConstructorInfo ci && callInstruction == OpCodes.Call) 
+                else if (methodToCall is ConstructorInfo ci && callInstruction == OpCodes.Call)
                 {
-                    _ilGenerator.Emit(OpCodes.Call, ci); 
+                    _ilGenerator.Emit(OpCodes.Call, ci);
                 }
                 else
                 {
                     Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): methodToCall ('{methodToCall.Name}') no es MethodInfo o ConstructorInfo compatible. Tipo actual: {methodToCall.GetType().FullName}");
-                    if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if(GetExpressionType(argExpr)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                    if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if (GetExpressionType(argExpr) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
                     if (isInstanceMethodOnThis) _ilGenerator.Emit(OpCodes.Pop);
                 }
             }
             else
             {
                 Console.Error.WriteLine($"CodeGen Error (HandleMethodCall): methodToCall es null antes de emitir OpCodes.Call para '{designatorCtx.GetText()}'.");
-                if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if(GetExpressionType(argExpr)!=Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
-                if (isInstanceMethodOnThis) _ilGenerator.Emit(OpCodes.Pop); 
+                if (actParsCtx != null) foreach (var argExpr in actParsCtx.expr()) if (GetExpressionType(argExpr) != Compiladores.Checker.Type.Void) _ilGenerator.Emit(OpCodes.Pop);
+                if (isInstanceMethodOnThis) _ilGenerator.Emit(OpCodes.Pop);
             }
         }
-         private MethodSymbol ResolveDesignatorToCallableSymbol(MiniCSharpParser.DesignatorContext designatorCtx)
+
+
+        private MethodSymbol ResolveDesignatorToCallableSymbol(MiniCSharpParser.DesignatorContext designatorCtx)
         {
             if (designatorCtx == null || designatorCtx.IDENT() == null || designatorCtx.IDENT().Length == 0)
             {

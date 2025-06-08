@@ -1,0 +1,17 @@
+// Archivo: MainApp.mcs
+using MathLib; // 1. Se importa el módulo MathLib.mcs
+
+class MainApp {
+
+    void Main() {
+        MathLib myMath; // 2. Se declara una variable del tipo importado.
+
+        myMath = new MathLib(); // 3. Se crea una instancia de la clase importada.
+
+        int result;
+        result = myMath.Add(10, 5); // 4. Se llama a un método del objeto instanciado.
+
+        write("El resultado de la suma es: ");
+        write(result); // Debería imprimir 15
+    }
+}
