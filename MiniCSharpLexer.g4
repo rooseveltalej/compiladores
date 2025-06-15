@@ -21,9 +21,9 @@ WRITE: 'write';
 NEW: 'new';
 TRUE: 'true';
 FALSE: 'false';
-SWITCH: 'switch'; // <<< NUEVO
-CASE: 'case';     // <<< NUEVO
-DEFAULT: 'default'; // <<< NUEVO
+SWITCH: 'switch'; 
+CASE: 'case';    
+DEFAULT: 'default';
 USING: 'using';
 
 

@@ -1,0 +1,11 @@
+﻿class SintaxisError3
+{
+    void Main()
+    {
+        int i;
+        // La sección de incremento `i--` no puede ser una sentencia con `;`
+        for (i = 0; i < 5; i--;) {
+            write(i);
+        }
+    }
+}

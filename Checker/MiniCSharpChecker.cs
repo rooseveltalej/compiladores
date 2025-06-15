@@ -555,10 +555,10 @@ namespace Compiladores.Checker
                 { AddError($"Unary minus operator cannot be applied to type '{currentType}'.", context.term(0)); return StoreAndReturnType(context, Type.Error); }
             }
 
-            // *** INICIO DEL NUEVO CÓDIGO PARA CASTEO ***
+           
             if (context.cast() != null)
             {
-                Type targetType = Visit(context.cast()); // Esto obtiene el tipo de destino, ej. 'int'
+                Type targetType = Visit(context.cast()); 
                 if (!IsCastCompatible(currentType, targetType))
                 {
                     AddError($"Cannot cast from '{currentType}' to '{targetType}'.", context.cast());
@@ -566,11 +566,11 @@ namespace Compiladores.Checker
                 }
                 else
                 {
-                    // El tipo de la expresión después del casteo es el tipo de destino
+                   
                     currentType = targetType; 
                 }
             }
-            // *** FIN DEL NUEVO CÓDIGO PARA CASTEO ***
+            
 
             for (int i = 0; i < context.addop().Length; i++)
             {
@@ -939,18 +939,18 @@ namespace Compiladores.Checker
             return Visit(context.block());
         }
         
-        // *** MÉTODO MODIFICADO PARA CASTING ***
+        
         public override Type VisitCast(MiniCSharpParser.CastContext context)
         {
-            // Este método simplemente visita y devuelve el tipo que se encuentra dentro de los paréntesis del casteo
+           
             Type targetType = Visit(context.type());
             return StoreAndReturnType(context, targetType);
         }
          
-        // *** NUEVO MÉTODO HELPER PARA VALIDAR CASTING ***
+      
         private bool IsCastCompatible(Type source, Type target)
         {
-            // Permite conversiones entre cualquier tipo numérico (int, double, char)
+            
             bool isSourceNumeric = source.Kind == TypeKind.Int || source.Kind == TypeKind.Double || source.Kind == TypeKind.Char;
             bool isTargetNumeric = target.Kind == TypeKind.Int || target.Kind == TypeKind.Double || target.Kind == TypeKind.Char;
 
@@ -959,7 +959,7 @@ namespace Compiladores.Checker
                 return true;
             }
 
-            // Aquí se podrían agregar más reglas en el futuro (ej. casteo de clases)
+            
             return false;
         }
     }

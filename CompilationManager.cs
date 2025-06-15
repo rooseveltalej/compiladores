@@ -10,24 +10,19 @@ namespace Compiladores.Checker
     public class CompilationManager
     {
         internal readonly Dictionary<string, Tuple<ClassSymbol, System.Type>> _compiledModulesCache = new Dictionary<string, Tuple<ClassSymbol, System.Type>>();
-        private readonly HashSet<string> _currentlyCompiling = new HashSet<string>(); // Para detectar dependencias circulares simples
-        private readonly string _initialDirectory; // Directorio del archivo principal para resolver otros
+        private readonly HashSet<string> _currentlyCompiling = new HashSet<string>(); 
+        private readonly string _initialDirectory; 
 
         public CompilationManager(string mainFilePath)
         {
             _initialDirectory = Path.GetDirectoryName(mainFilePath);
             if (string.IsNullOrEmpty(_initialDirectory))
             {
-                _initialDirectory = Directory.GetCurrentDirectory(); // Fallback si la ruta no tiene directorio
+                _initialDirectory = Directory.GetCurrentDirectory(); 
             }
         }
 
-        /// <summary>
-        /// Intenta compilar un módulo (archivo .mcs) por su nombre y devuelve su ClassSymbol principal.
-        /// Devuelve null si no se encuentra, hay errores, o dependencia circular.
-        /// El 'callingChecker' es el checker del archivo que contiene la directiva 'using',
-        /// para reportar errores en su contexto.
-        /// </summary>
+      
         public Tuple<ClassSymbol, System.Type> GetOrCompileModule(string moduleName, MiniCSharpChecker callingChecker)
         {
             if (string.IsNullOrEmpty(moduleName)) return null;

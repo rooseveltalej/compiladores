@@ -1,0 +1,9 @@
+﻿class SemanticaError1
+{
+    void Main()
+    {
+        int numero;
+        // Error: No se puede asignar un string a un int.
+        numero = "esto es un texto";
+    }
+}

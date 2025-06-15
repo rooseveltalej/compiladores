@@ -1,8 +1,8 @@
 ﻿// Archivo: MiniCSharpRuntimeHelpers.cs
 using System;
-using System.Linq; // Necesario para System.Array.Empty<T>() en algunas versiones o para claridad
+using System.Linq; 
 
-namespace Compiladores // Asegúrate que este namespace coincida con el using en MiniCSharpCodeGenerator.cs
+namespace Compiladores 
 {
     public static class MiniCSharpRuntimeHelpers
     {
@@ -45,21 +45,20 @@ namespace Compiladores // Asegúrate que este namespace coincida con el using en
             return newArray;
         }
 
-        // NUEVOS HELPERS PARA 'del'
+       
 
         // Helper para del(int[], int)
         public static int[] DeleteIntElementAt(int[] array, int index)
         {
             if (array == null || array.Length == 0)
             {
-                return array ?? System.Array.Empty<int>(); // Devolver array original o vacío si es nulo/vacío
+                return array ?? System.Array.Empty<int>(); 
             }
             if (index < 0 || index >= array.Length)
             {
-                // Opción 1: Lanzar excepción (estándar en C#)
+               
                 throw new IndexOutOfRangeException("Index was outside the bounds of the array for del operation.");
-                // Opción 2: Devolver el array original sin cambios (más permisivo)
-                // return array; 
+               
             }
 
             int[] newArray = new int[array.Length - 1];
@@ -122,7 +121,6 @@ namespace Compiladores // Asegúrate que este namespace coincida con el using en
             return newArray;
         }
 
-        // Podrías añadir sobrecargas para double[] si lo necesitas:
-        // public static double[] DeleteDoubleElementAt(double[] array, int index) { ... }
+        
     }
 }

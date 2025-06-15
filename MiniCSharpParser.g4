@@ -37,7 +37,7 @@ statement:
     | IF LPAREN condition RPAREN statement (ELSE statement)? #IfStatement
     | FOR LPAREN expr SEMI condition? SEMI statement? RPAREN statement #ForStatement
     | WHILE LPAREN condition RPAREN statement #WhileStatement
-    | SWITCH LPAREN expr RPAREN LBRACE switchCase* defaultCase? RBRACE #SwitchStatement // <<< NUEVA ALTERNATIVA
+    | SWITCH LPAREN expr RPAREN LBRACE switchCase* defaultCase? RBRACE #SwitchStatement 
     | BREAK SEMI #BreakStatement
     | RETURN expr? SEMI #ReturnStatement
     | READ LPAREN designator RPAREN SEMI #ReadStatement
@@ -46,7 +46,7 @@ statement:
     | SEMI #EmptyStatement
     ;
 
-// --- Nuevas Reglas para Switch ---
+
 switchCase:
     CASE constant COLON statement* // Permitimos múltiples statements por case
     ;
@@ -55,23 +55,16 @@ defaultCase:
     DEFAULT COLON statement* // Permitimos múltiples statements para default
     ;
 
-// --- Regla para constantes en los 'case' ---
-// Necesita poder parsear literales que se usarán en los case.
-// Las constantes de los 'case' en C# deben ser del mismo tipo que la expresión del switch
-// y deben ser literales o constantes definidas.
-// Por simplicidad, aquí permitiremos literales comunes.
-// El chequeo de tipos se hará en el Checker.
+
 constant:
     number
     | CHARCONST
     
-    // | STRINGCONST // MiniC# no especifica switch sobre strings, pero se podría añadir.
-    // | FALSE
-    // | IDENT      // Si quieres permitir constantes con nombre (requiere chequeo semántico)
+   
     ;
 
 
-// --- Resto de las reglas (sin cambios respecto a la versión anterior) ---
+
 block: LBRACE (varDecl | statement)* RBRACE;
 actPars: expr (COMMA expr)*;
 condition: condTerm (OR condTerm)*;

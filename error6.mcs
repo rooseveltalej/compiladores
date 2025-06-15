@@ -1,0 +1,11 @@
+﻿class SemanticaError5
+{
+    void Main()
+    {
+        int resultado;
+        bool condicion;
+        condicion = true;
+        // Error: No se puede sumar un entero y un booleano.
+        resultado = 10 + condicion;
+    }
+}

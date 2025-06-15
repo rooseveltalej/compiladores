@@ -1,0 +1,12 @@
+﻿class SintaxisError4
+{
+    void Main()
+    {
+        write("Hola");
+
+        void MetodoAnidado() // Error: no se pueden declarar métodos aquí
+        {
+            int x;
+        }
+    }
+}

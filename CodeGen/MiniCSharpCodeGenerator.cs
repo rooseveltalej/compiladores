@@ -165,12 +165,7 @@ namespace Compiladores.CodeGen
             foreach (var varDeclContext in context.varDecl()) Visit(varDeclContext); 
 
             _currentCodeGenScope = outerScope; 
-            
-            // *** INICIO DE LA CORRECCIÓN ***
-            // "Horneamos" el tipo anidado para que esté disponible para ser instanciado.
             _currentTypeBuilder.CreateTypeInfo();
-            // *** FIN DE LA CORRECCIÓN ***
-
             _currentTypeBuilder = outerTypeBuilder; 
             return null; 
         }
@@ -300,7 +295,6 @@ namespace Compiladores.CodeGen
                    _ilGenerator.Emit(OpCodes.Ret);
                 }
             }
-            
             _currentGeneratingMethodSymbol = previousGeneratingMethodSymbol;
             _ilGenerator = previousILGenerator;
             _currentMethodBuilder = previousMethodBuilder;
@@ -1841,21 +1835,20 @@ namespace Compiladores.CodeGen
     var designatorCtx = context.designator();
     var designatorType = GetExpressionType(designatorCtx);
 
-    // *** INICIO DE LA CORRECCIÓN ***
-    // Preparamos la pila para el almacenamiento, igual que en una asignación.
+   
     if (designatorCtx.DOT().Length > 0)
     {
-        // Es un campo (ej. report.rawScore). Cargamos la referencia a 'report'.
+        
         string objectName = designatorCtx.IDENT(0).GetText();
         Symbol objectSymbol = _currentCodeGenScope.Find(objectName) ?? _symbolTable.SearchGlobal(objectName);
         if (objectSymbol is VarSymbol varObj)
         {
-            EmitLoadVariable(varObj); // Este método pone la referencia al objeto en la pila.
+            EmitLoadVariable(varObj); 
         }
     }
     else if (designatorCtx.LBRACK().Length > 0)
     {
-        // Es un array (ej. miArray[i]). Cargamos la referencia al array y el índice.
+        
         string baseArrayName = designatorCtx.IDENT(0).GetText();
         Symbol baseArraySymbol = _currentCodeGenScope.Find(baseArrayName) ?? _symbolTable.SearchGlobal(baseArrayName);
         if (baseArraySymbol is VarSymbol varSym)
@@ -1867,9 +1860,7 @@ namespace Compiladores.CodeGen
             return null;
         }
     }
-    // *** FIN DE LA CORRECCIÓN ***
-
-    // Ahora, con la pila preparada, leemos y parseamos el valor desde la consola.
+   
     MethodInfo readLineMethod = typeof(Console).GetMethod("ReadLine", System.Type.EmptyTypes);
     _ilGenerator.Emit(OpCodes.Call, readLineMethod);
 
@@ -1904,17 +1895,13 @@ namespace Compiladores.CodeGen
     }
     else if (designatorType == Compiladores.Checker.Type.Char)
     {
-        // Considerar que leer un solo caracter puede ser más complejo.
-        // Esta implementación toma el primer caracter de la línea ingresada.
+        
         _ilGenerator.Emit(OpCodes.Ldc_I4_0);
         MethodInfo charAtMethod = typeof(string).GetMethod("get_Chars", new[] { typeof(int) });
         _ilGenerator.Emit(OpCodes.Callvirt, charAtMethod);
     }
     
     _ilGenerator.MarkLabel(endReadLabel);
-    
-    // La pila ahora está correcta: [obj_ref, value] o [arr_ref, index, value] o solo [value].
-    // EmitStoreToDesignator ahora funcionará.
     EmitStoreToDesignator(designatorCtx, designatorType);
 
     return null;

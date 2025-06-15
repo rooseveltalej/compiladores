@@ -1,25 +1,18 @@
-
 class MiProgramaPrueba
 {
     void Main()
     {
         int a;
         int b;
-        int resultado
-
-
-
-
-
-
+        int resultado; 
 
         a = 10;
-        // write(a); // Comentado o eliminado
+        // write(a); 
 
         b = 5;
-        // write(b); // Comentado o eliminado
+        // write(b); 
 
         resultado = a - b; 
-        write(resultado);    // Solo este write se ejecutará y mostrará 50
+        write(resultado);    
     }
 }

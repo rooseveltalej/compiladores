@@ -1,0 +1,11 @@
+﻿class SintaxisError2
+{
+    void Main()
+    {
+        int a;
+        a = 5;
+        if (a = 5) { // Error: se usa = en lugar de ==
+            write(a);
+        }
+    }
+}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Threading.Tasks; // Necesario para Task
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -31,7 +31,7 @@ namespace Compiladores
 
             InitializeUiControls();
 
-            string initialFilePath = @"C:\Users\Bayron\RiderProjects\compiladores\finalIntegrationTest.mcs"; // Asegúrate que esta ruta es correcta
+            string initialFilePath = @"C:\Users\Bayron\RiderProjects\compiladores\finalIntegrationTest.mcs";
             string initialContent = "class Program { void Main() { } }";
             if (File.Exists(initialFilePath))
             {
@@ -111,8 +111,7 @@ namespace Compiladores
             statusStrip.Items.Add(lblLineInfoStatus);
             Controls.Add(statusStrip);
         }
-        
-        // **** INICIO DE LA CORRECCIÓN ****
+
         private async void BtnCompile_Click(object sender, EventArgs e)
         {
             if (tabControlEditor.SelectedTab == null) { txtOutput.Text = "No file to compile."; return; }
@@ -126,14 +125,12 @@ namespace Compiladores
             if (string.IsNullOrEmpty(state.FilePath)) { txtOutput.Text = "Cannot compile without a valid file path."; return; }
 
             txtOutput.Text = "Compiling...";
-            btnCompile.Enabled = false; // Deshabilitar el botón para evitar clics múltiples
+            btnCompile.Enabled = false;
 
             try
             {
-                // Ejecutamos la compilación en un hilo de fondo
                 await Task.Run(() =>
                 {
-                    // Redirigimos la salida de la consola a un StringWriter
                     var writer = new StringWriter();
                     Console.SetOut(writer);
                     
@@ -141,7 +138,6 @@ namespace Compiladores
                     
                     writer.Flush();
                     
-                    // Actualizamos el TextBox en el Hilo de la UI de forma segura
                     this.Invoke((MethodInvoker)delegate {
                         txtOutput.Text = writer.ToString();
                     });
@@ -153,12 +149,9 @@ namespace Compiladores
             }
             finally
             {
-                 btnCompile.Enabled = true; // Rehabilitar el botón al finalizar
+                 btnCompile.Enabled = true;
             }
         }
-        // **** FIN DE LA CORRECCIÓN ****
-
-        #region Manejo de Pestañas y UI (Sin cambios)
 
         private void AddNewTab(string tabTitle = "Nuevo", string filePath = null, string content = "")
         {
@@ -180,7 +173,10 @@ namespace Compiladores
             
             RichTextBox codeEditor = new RichTextBox()
             {
-                Dock = DockStyle.Fill, ScrollBars = RichTextBoxScrollBars.ForcedBoth,
+                Dock = DockStyle.Fill, 
+                // --- CORRECCIÓN ---
+                // Se cambia ForcedBoth por Both, que es universalmente compatible.
+                ScrollBars = RichTextBoxScrollBars.Both, 
                 WordWrap = false, Font = new Font("Consolas", 11),
                 BackColor = Color.FromArgb(25, 25, 25), ForeColor = Color.White,
                 BorderStyle = BorderStyle.None,
@@ -282,7 +278,6 @@ namespace Compiladores
             var currentEditor = sender as RichTextBox;
             if (currentEditor != null) UpdateEditorInfo(currentEditor);
         }
-
 
         private void UpdateEditorInfo(RichTextBox editor)
         {
@@ -414,14 +409,34 @@ namespace Compiladores
             try
             {
                 if (e.Index < 0 || e.Index >= tabControlEditor.TabCount) return;
+                
                 TabPage page = tabControlEditor.TabPages[e.Index];
-                e.Graphics.FillRectangle(new SolidBrush(page.BackColor), e.Bounds);
+                
+                Color backgroundColor = (e.State == DrawItemState.Selected) 
+                    ? Color.FromArgb(45, 45, 48)
+                    : page.BackColor;
+                
+                using (SolidBrush backgroundBrush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(backgroundBrush, e.Bounds);
+                }
+
                 Rectangle paddedBounds = e.Bounds;
-                int yOffset = (e.State == DrawItemState.Selected) ? -2 : 1;
-                paddedBounds.Offset(1, yOffset);
-                TextRenderer.DrawText(e.Graphics, page.Text, e.Font, paddedBounds, page.ForeColor);
-                Rectangle closeButton = new Rectangle(e.Bounds.Right - 18, e.Bounds.Top + (e.Bounds.Height - 14) / 2 , 14, 14);
-                e.Graphics.DrawString("x", e.Font, Brushes.Black, closeButton);
+                int yOffset = (e.State == DrawItemState.Selected) ? -1 : 1;
+                paddedBounds.Offset(2, yOffset);
+                paddedBounds.Width -= 20;
+                
+                TextRenderer.DrawText(e.Graphics, page.Text, e.Font, paddedBounds, Color.White, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+
+                Rectangle closeButton = new Rectangle(e.Bounds.Right - 20, e.Bounds.Top + (e.Bounds.Height - 15) / 2, 15, 15);
+                
+                using (Font closeFont = new Font("Arial", 8, FontStyle.Bold))
+                {
+                    Point mousePos = tabControlEditor.PointToClient(Cursor.Position);
+                    Brush closeBrush = closeButton.Contains(mousePos) ? Brushes.Red : Brushes.White;
+                    e.Graphics.DrawString("x", closeFont, closeBrush, closeButton.Location);
+                }
+                
                 e.DrawFocusRectangle();
             }
             catch { /* Ignorar errores de dibujado */ }
@@ -432,8 +447,12 @@ namespace Compiladores
             for (int i = 0; i < tabControlEditor.TabCount; i++)
             {
                 Rectangle tabBounds = tabControlEditor.GetTabRect(i);
-                Rectangle closeButton = new Rectangle(tabBounds.Right - 18, tabBounds.Top + (tabBounds.Height - 14) / 2, 14, 14);
-                if (closeButton.Contains(e.Location)) { CloseTab(tabControlEditor.TabPages[i]); return; }
+                Rectangle closeButton = new Rectangle(tabBounds.Right - 20, tabBounds.Top + (tabBounds.Height - 15) / 2, 15, 15);
+                if (closeButton.Contains(e.Location)) 
+                { 
+                    CloseTab(tabControlEditor.TabPages[i]);
+                    return;
+                }
             }
         }
 
@@ -458,7 +477,5 @@ namespace Compiladores
             public RichTextBox LineNumbersControl { get; set; }
             public EditorTabState() { HasUnsavedChanges = false; }
         }
-
-        #endregion
     }
 }

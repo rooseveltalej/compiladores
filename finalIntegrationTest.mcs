@@ -1,37 +1,89 @@
 ﻿class FinalIntegrationTest
 {
-	// 1. Clase anidada para probar la instanciación de objetos y el acceso a campos.
-	class GradeReport
-	{
-		double rawScore;
-		int roundedScore;
-	}
+    class Student
+    {
+        int id;
+        double gpa;
+    }
 
-	void Main()
-	{
-		GradeReport report;
+    void Main()
+    {
+        int choice;
+        int i;
+        double d;
+        Student s;
 
-		write("--- Prueba de Integración Final ---");
-		
-		// 2. Instanciación de un objeto.
-		report = new GradeReport();
+        write("--- INICIO DEL TEST INTEGRAL (NO INTERACTIVO) ---");
 
-		// 3. Uso de 'read' para escribir en el campo de un objeto.
-		write("Por favor, ingrese una calificación con decimales (ej. 95.8):");
-		read(report.rawScore);
+        // 1. Prueba de Casteo
+        write("");
+        write("--- Prueba de Casteo ---");
+        d = 99.8;
+        i = (int) d;
+        write("Casteo de 99.8 a int es:");
+        write(i); 
 
-		// 4. Lectura de un campo de objeto y casteo a otro tipo.
-		write("Casteando la calificación a un entero (truncando)...");
-		report.roundedScore = (int) report.rawScore;
+        // 2. Prueba de Objetos (con valores fijos)
+        write("");
+        write("--- Prueba de Objetos ---");
+        s = new Student();
 
-		// 5. Uso de 'write' para leer los campos del objeto.
-		write("--- Reporte de Calificaciones ---");
-		write("Calificación original (double):");
-		write(report.rawScore);
-		write("Calificación redondeada (int):");
-		write(report.roundedScore);
+        // Se usan valores fijos en lugar de 'read'
+        s.id = 2025;
+        s.gpa = 88.5;
 
-		write("");
-		write("--- Fin de la Prueba ---");
-	}
+        write("Datos del estudiante:");
+        write("ID:");
+        write(s.id);
+        write("GPA:");
+        write(s.gpa);
+
+        // 3. Prueba de 'if-else'
+        write("");
+        write("--- Prueba de If-Else ---");
+        if (s.gpa >= 90.0) {
+            write("El GPA es excelente.");
+        } else {
+            write("El GPA es bueno.");
+        }
+
+        // 4. Prueba de 'for'
+        write("");
+        write("--- Prueba de Bucle For (conteo de 3 a 1) ---");
+        
+        // --- INICIO DE LA CORRECCIÓN INTEGRADA ---
+        i = 3; // 1. La inicialización se mueve fuera del bucle.
+        
+        // 2. La sección de incremento/decremento de la cabecera se deja vacía
+        //    para evitar el conflicto de la gramática. Se requieren dos punto y coma.
+        for (i; i > 0; ) 
+        {
+            write(i);
+            i--; // 3. El decremento se realiza como una sentencia dentro del cuerpo del bucle.
+        }
+        // --- FIN DE LA CORRECCIÓN INTEGRADA ---
+
+        // 5. Prueba de 'switch' (con un valor fijo)
+        write("");
+        write("--- Prueba de Switch ---");
+        choice = 2;
+        write("Probando la opción 2 del switch...");
+        switch(choice) {
+            case 1:
+                write("Usted eligió la opción 1.");
+                break;
+            case 2:
+                write("Usted eligió la opción 2.");
+                break;
+            case 3:
+                write("Usted eligió la opción 3.");
+                break;
+            default:
+                write("Opción no válida.");
+                break;
+        }
+
+        write("");
+        write("--- FIN DEL TEST INTEGRAL ---");
+    }
 }

@@ -1,14 +1,9 @@
-﻿// Archivo: Compiladores/Checker/TablaSimbolos.cs
-
-// Archivo: Compiladores/Checker/TablaSimbolos.cs
-
-// Archivo: Compiladores/Checker/TablaSimbolos.cs
-
+﻿
 using System.Collections.Generic;
 using System.Text; 
 using System.Linq; 
 using Antlr4.Runtime;
-using Antlr4.Runtime.Tree; // Necesario para IParseTree
+using Antlr4.Runtime.Tree; 
 
 namespace Compiladores.Checker
 {
@@ -157,8 +152,7 @@ namespace Compiladores.Checker
         private Scope _currentScope;
         private int _currentLevel;
         private Scope _globalScope; 
-
-        // --- NUEVO: Diccionario para mapear nodos del AST a sus Scopes ---
+        
         private Dictionary<IParseTree, Scope> _nodeScopes = new Dictionary<IParseTree, Scope>();
 
         public int CurrentLevel => _currentLevel;
@@ -179,7 +173,7 @@ namespace Compiladores.Checker
 
         private void Init()
         {
-            OpenScope(); // Abre el scope global (_globalScope)
+            OpenScope(); 
             _globalScope = _currentScope; 
 
             Insert(new TypeDefSymbol("int", Type.Int));
@@ -233,8 +227,7 @@ namespace Compiladores.Checker
         {
             return _currentScope?.FindCurrent(name);
         }
-
-        // --- MODIFICADO: OpenScope ahora puede asociar el nuevo scope con un nodo del AST ---
+        
         public void OpenScope(IParseTree nodeContext = null)
         {
             _currentScope = new Scope(_currentScope); 
@@ -248,11 +241,9 @@ namespace Compiladores.Checker
                 }
                 else
                 {
-                    // Esto podría indicar un problema en la lógica del checker si intenta abrir un scope para el mismo nodo dos veces.
-                    // O podría ser benigno si se espera que el scope se "re-asocie" (aunque es menos común).
-                    // Por ahora, podemos actualizarlo o registrar una advertencia.
-                    _nodeScopes[nodeContext] = _currentScope; // Actualiza al scope más recientemente abierto para este nodo
-                    // Console.WriteLine($"Warning: Scope for node {nodeContext.GetText().Substring(0, Math.Min(20, nodeContext.GetText().Length))} re-associated.");
+                    
+                    _nodeScopes[nodeContext] = _currentScope; 
+                    
                 }
             }
         }
@@ -261,23 +252,20 @@ namespace Compiladores.Checker
         {
             if (_currentScope != null)
             {
-                // No removemos de _nodeScopes al cerrar, porque el CodeGenerator
-                // necesitará acceder a esos scopes después de que el Checker haya terminado.
+                
                 _currentScope = _currentScope.Outer; 
                 _currentLevel--; 
             }
         }
-
-        // --- NUEVO: Método para obtener el Scope asociado con un nodo del AST ---
+        
         public Scope GetScopeForNode(IParseTree nodeContext)
         {
             _nodeScopes.TryGetValue(nodeContext, out Scope scope);
-            return scope; // Devuelve el scope encontrado o null si no hay ninguno asociado
+            return scope; 
         }
         
         public void PrintFlatTable()
         {
-            // ... (sin cambios en PrintFlatTable) ...
             Console.WriteLine("===== FLAT SYMBOL TABLE (Visible from Current Scope, Level: " + _currentLevel + ") =====");
             Console.WriteLine("{0,-20} {1,-10} {2,-15} {3,-15} {4,-10}", "Nombre", "Nivel Decl", "Tipo", "Clasificación", "Linea Decl");
             Console.WriteLine(new string('-', 75)); 
